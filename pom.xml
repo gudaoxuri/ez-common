@@ -7,7 +7,7 @@
     <groupId>com.ecfront</groupId>
     <artifactId>ez-common</artifactId>
     <name>EZ Common</name>
-    <description>EZ公共模块</description>
+    <description>公共模块</description>
     <url>https://github.com/gudaoxuri/ez-common</url>
     <packaging>jar</packaging>
     <version>0.1</version>
