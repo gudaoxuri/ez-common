@@ -3,16 +3,21 @@ package com.ecfront.common
 import org.apache.commons.beanutils.BeanUtilsBean
 
 /**
- * Created by sunisle on 2014/9/16.
+ * Bean操作辅助类
  */
 object BeanHelper {
   private val copyPropertiesAdapter = new NullAwareBeanUtilsBean
 
-  def copyProperties(dest: AnyRef, orig:AnyRef)= copyPropertiesAdapter.copyProperties(dest,orig)
+  /**
+   * Bean 复制，忽略Null值属性
+   * @param dest 目录Bean
+   * @param orig 源Bean
+   */
+  def copyProperties(dest: AnyRef, orig: AnyRef) = copyPropertiesAdapter.copyProperties(dest, orig)
 
 }
 
-class NullAwareBeanUtilsBean extends BeanUtilsBean {
+private class NullAwareBeanUtilsBean extends BeanUtilsBean {
   override def copyProperty(bean: scala.Any, name: String, value: scala.Any): Unit = {
     if (null != value) {
       super.copyProperty(bean, name, value)
