@@ -22,7 +22,7 @@ object ConfigHelper extends LazyLogging {
    * @tparam E  要转换成的对象类型
    * @return 配置文件对象
    */
-  def init[E](configClazz: Class[E] = classOf[JsonNode], configPath: String = getClass.getResource("/").getPath + "config.json"): Option[E] = {
+  def init[E](configClazz: Class[E] = classOf[JsonNode], configPath: String = "config.json"): Option[E] = {
     val realConfigPath = if (System.getProperties.containsKey(SYS_PROP_CONFIG)) System.getProperty(SYS_PROP_CONFIG) else configPath
     if (new File(realConfigPath).exists()) {
       val configStr = Source.fromFile(realConfigPath).mkString
