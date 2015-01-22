@@ -1,4 +1,4 @@
-import com.ecfront.common.ConfigHelper
+import com.ecfront.common.{JsonHelper, ConfigHelper}
 import com.fasterxml.jackson.databind.JsonNode
 import org.scalatest._
 
@@ -13,6 +13,12 @@ class CommonSpec extends FunSuite {
     assert(value3.loglevel == "INFO")
   }
 
+  test("Json测试") {
+    val a=JsonHelper.toJson(Config("aaa"))
+    val b=JsonHelper.toJson("""{"a_key":"a_val"}""")
+    JsonHelper.toJson("""{"a_key":"a_val"}""")
+    print(JsonHelper.toJsonString(JsonHelper.createObjectNode().set("", JsonHelper.createObjectNode().put("a_key", "a_val"))))
+  }
 
 }
 

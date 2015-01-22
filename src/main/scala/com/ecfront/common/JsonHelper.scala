@@ -1,5 +1,6 @@
 package com.ecfront.common
 
+import com.fasterxml.jackson.databind.node.{ArrayNode, ObjectNode}
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 
@@ -7,7 +8,7 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
  * Scala版本的Json辅助类<br/>
  * 使用<i>jackson-module-scala</i>封装
  */
-object ScalaJsonHelper {
+object JsonHelper {
 
   private val mapper = new ObjectMapper()
   mapper.registerModule(DefaultScalaModule)
@@ -29,7 +30,7 @@ object ScalaJsonHelper {
   def toJson(obj: Any): JsonNode = {
     obj match {
       case o: String => mapper.readTree(o)
-      case _ => mapper.readTree(toJsonString(obj))
+      case _ => mapper.valueToTree(obj)
     }
   }
 
@@ -40,9 +41,25 @@ object ScalaJsonHelper {
    */
   def toObject[E](obj: Any, clazz: Class[E]): E = {
     obj match {
-      case o: String => mapper.readValue(o, clazz)
+      case o: String =>
+        clazz match {
+          case c if c == classOf[String] =>
+            o.asInstanceOf[E]
+          case c if c == classOf[Void] =>
+             null.asInstanceOf[E]
+          case _ =>
+            mapper.readValue(o, clazz)
+        }
       case o: JsonNode => mapper.readValue(o.toString, clazz)
     }
+  }
+
+  def createObjectNode(): ObjectNode = {
+    mapper.createObjectNode()
+  }
+
+  def createArrayNode(): ArrayNode = {
+    mapper.createArrayNode()
   }
 
 }
