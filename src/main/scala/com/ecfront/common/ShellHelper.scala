@@ -1,0 +1,206 @@
+package com.ecfront.common
+
+import java.io.{BufferedReader, IOException, InputStream, InputStreamReader}
+import java.util.concurrent.{CountDownLatch, Executors}
+
+import com.typesafe.scalalogging.slf4j.LazyLogging
+
+/**
+ * Shell辅助类
+ */
+case class ShellHelper(command: String, reportHandler: ReportHandler = null, taskId: String = "", successFlag: String = null, progressFlag: String = null) extends LazyLogging {
+
+  def execute(): Unit = {
+    try {
+      val process = Runtime.getRuntime.exec(Array[String]("/bin/sh", "-c", command))
+      if (process != null) {
+        val errorGobbler = new StreamGobbler(process.getErrorStream)
+        val outputGobbler = new StreamGobbler(process.getInputStream)
+        val errorFuture = Executors.newCachedThreadPool.submit(errorGobbler)
+        val outputFuture = Executors.newCachedThreadPool.submit(outputGobbler)
+        if (0 == process.waitFor) {
+          val res1 = errorFuture.get
+          val res2 = outputFuture.get
+          if (reportHandler != null) {
+            reportHandler.complete(taskId)
+          }
+          logger.debug("Execute Complete: " + command)
+          if (!res1 && !res2) {
+            if (reportHandler != null) {
+              reportHandler.fail(taskId, "Not Find successFlag [" + successFlag + "], shellPath:" + command)
+            }
+            logger.warn("Execute fail: Not Find successFlag [" + successFlag + "], shellPath:" + command)
+          }
+        } else {
+          logger.warn("Execute fail: Abnormal termination , shellPath:" + command)
+          if (reportHandler != null) {
+            reportHandler.fail(taskId, "Abnormal termination , shellPath:" + command)
+          }
+        }
+      } else {
+        logger.warn("Execute fail: PID NOT exist , shellPath:" + command)
+        if (reportHandler != null) {
+          reportHandler.fail(taskId, "PID NOT exist , shellPath:" + command)
+        }
+      }
+    } catch {
+      case e: Exception =>
+        logger.error("Execute fail: ", e)
+        if (reportHandler != null) {
+          reportHandler.fail(taskId, e.getMessage + " , shellPath:" + command)
+        }
+    }
+  }
+
+  /**
+   * 输出处理
+   */
+  private class StreamGobbler(is: InputStream) extends java.util.concurrent.Callable[Boolean] {
+
+    def call: Boolean = {
+      var isr: InputStreamReader = null
+      var br: BufferedReader = null
+      var line: String = null
+      var success: Boolean = false
+      try {
+        isr = new InputStreamReader(is)
+        br = new BufferedReader(isr)
+        line = br.readLine
+        while (line != null) {
+          logger.trace("Shell content:" + line)
+          if (successFlag != null && line.toLowerCase.contains(successFlag)) {
+            if (reportHandler != null) {
+              reportHandler.success(taskId)
+            }
+            success = true
+          }
+          if (progressFlag != null && reportHandler != null && line.toLowerCase.contains(progressFlag)) {
+            reportHandler.progress(taskId, Integer.valueOf(line.substring(line.indexOf(progressFlag) + progressFlag.length).trim))
+          }
+          line = br.readLine
+        }
+        if (successFlag == null) {
+          true
+        } else {
+          success
+        }
+      } catch {
+        case e: IOException =>
+          logger.warn("Execute fail: ", e)
+          false
+      } finally {
+        if (br != null) {
+          try {
+            br.close()
+          }
+          catch {
+            case e: Exception =>
+              logger.warn("Execute warn: ", e)
+          }
+        }
+        if (isr != null) {
+          try {
+            isr.close()
+          }
+          catch {
+            case e: Exception =>
+              logger.warn("Execute warn: ", e)
+          }
+        }
+        if (is != null) {
+          try {
+            is.close()
+          }
+          catch {
+            case e: Exception =>
+              logger.warn("Execute warn: ", e)
+          }
+        }
+      }
+    }
+  }
+
+}
+
+object ShellHelper {
+
+  /**
+   * @param command     shell命令
+   * @param reportHandler 任务报告实例
+   * @param taskId        任务ID
+   * @param successFlag   成功标识，只要捕捉到此标识就视为成功
+   * @param progressFlag  进度标识，只要捕捉到此标识就更新进度， 格式为 <progressFlag>空格<progress>,如： progress 40
+   */
+  def aSync(command: String, reportHandler: ReportHandler, taskId: String, successFlag: String, progressFlag: String): Unit = {
+    new ShellHelper(command, reportHandler, taskId, successFlag, progressFlag).execute()
+  }
+
+  def aSync(command: String, reportHandler: ReportHandler, taskId: String): Unit = {
+    new ShellHelper(command, reportHandler, taskId).execute()
+  }
+
+  def aSync(command: String, reportHandler: ReportHandler): Unit = {
+    new ShellHelper(command, reportHandler).execute()
+  }
+
+  def aSync(command: String): Unit = {
+    new ShellHelper(command).execute()
+  }
+
+  def sync(command: String): Unit = {
+    val completeFlag = new CountDownLatch(1)
+    new ShellHelper(command, new ReportHandler {
+      override def progress(taskId: String, progress: Int): Unit = {}
+
+      override def success(taskId: String): Unit = {
+        completeFlag.countDown()
+      }
+
+      override def complete(taskId: String): Unit = {
+        completeFlag.countDown()
+      }
+
+      override def fail(taskId: String, message: String): Unit = {
+        completeFlag.countDown()
+      }
+    }).execute()
+    completeFlag.await()
+  }
+
+}
+
+/**
+ * 任务报告接口
+ */
+trait ReportHandler {
+  /**
+   * 成功
+   *
+   * @param taskId 任务ID
+   */
+  def success(taskId: String)
+
+  /**
+   * 失败
+   *
+   * @param taskId  任务ID
+   * @param message 失败原因描述
+   */
+  def fail(taskId: String, message: String)
+
+  /**
+   * 进度
+   *
+   * @param taskId   任务ID
+   * @param progress 0-100
+   */
+  def progress(taskId: String, progress: Int)
+
+  /**
+   * 完成
+   *
+   * @param taskId   任务ID
+   */
+  def complete(taskId: String)
+
+}
