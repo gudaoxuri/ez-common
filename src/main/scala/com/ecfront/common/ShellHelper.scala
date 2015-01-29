@@ -10,7 +10,11 @@ import com.typesafe.scalalogging.slf4j.LazyLogging
  */
 case class ShellHelper(command: String, reportHandler: ReportHandler = null, taskId: String = "", successFlag: String = null, progressFlag: String = null) extends LazyLogging {
 
-  def execute(): Unit = {
+  private val result = new StringBuffer
+  private var returnResult = false
+
+  def execute(rr: Boolean): Unit = {
+    returnResult = rr
     try {
       val process = Runtime.getRuntime.exec(Array[String]("/bin/sh", "-c", command))
       if (process != null) {
@@ -22,7 +26,8 @@ case class ShellHelper(command: String, reportHandler: ReportHandler = null, tas
           val res1 = errorFuture.get
           val res2 = outputFuture.get
           if (reportHandler != null) {
-            reportHandler.complete(taskId)
+            //删除最后一行（\r\n）
+            reportHandler.complete(taskId, if (result.length > 0) result.substring(0, result.length - 2) else result.toString())
           }
           logger.debug("Execute Complete: " + command)
           if (!res1 && !res2) {
@@ -68,6 +73,9 @@ case class ShellHelper(command: String, reportHandler: ReportHandler = null, tas
         line = br.readLine
         while (line != null) {
           logger.trace("Shell content:" + line)
+          if (returnResult) {
+            result.append(line + "\r\n")
+          }
           if (successFlag != null && line.toLowerCase.contains(successFlag)) {
             if (reportHandler != null) {
               reportHandler.success(taskId)
@@ -130,25 +138,27 @@ object ShellHelper {
    * @param taskId        任务ID
    * @param successFlag   成功标识，只要捕捉到此标识就视为成功
    * @param progressFlag  进度标识，只要捕捉到此标识就更新进度， 格式为 <progressFlag>空格<progress>,如： progress 40
+   * @param returnResult  是否返回结果
    */
-  def aSync(command: String, reportHandler: ReportHandler, taskId: String, successFlag: String, progressFlag: String): Unit = {
-    new ShellHelper(command, reportHandler, taskId, successFlag, progressFlag).execute()
+  def aSync(command: String, reportHandler: ReportHandler, taskId: String, successFlag: String, progressFlag: String, returnResult: Boolean): Unit = {
+    new ShellHelper(command, reportHandler, taskId, successFlag, progressFlag).execute(returnResult)
   }
 
-  def aSync(command: String, reportHandler: ReportHandler, taskId: String): Unit = {
-    new ShellHelper(command, reportHandler, taskId).execute()
+  def aSync(command: String, reportHandler: ReportHandler, taskId: String, returnResult: Boolean): Unit = {
+    new ShellHelper(command, reportHandler, taskId).execute(returnResult)
   }
 
-  def aSync(command: String, reportHandler: ReportHandler): Unit = {
-    new ShellHelper(command, reportHandler).execute()
+  def aSync(command: String, reportHandler: ReportHandler, returnResult: Boolean): Unit = {
+    new ShellHelper(command, reportHandler).execute(returnResult)
   }
 
   def aSync(command: String): Unit = {
-    new ShellHelper(command).execute()
+    new ShellHelper(command).execute(rr = false)
   }
 
-  def sync(command: String): Unit = {
+  def sync(command: String, returnResult: Boolean = false): String = {
     val completeFlag = new CountDownLatch(1)
+    var res: String = ""
     new ShellHelper(command, new ReportHandler {
       override def progress(taskId: String, progress: Int): Unit = {}
 
@@ -156,15 +166,17 @@ object ShellHelper {
         completeFlag.countDown()
       }
 
-      override def complete(taskId: String): Unit = {
+      override def complete(taskId: String, result: String): Unit = {
+        res = result
         completeFlag.countDown()
       }
 
       override def fail(taskId: String, message: String): Unit = {
         completeFlag.countDown()
       }
-    }).execute()
+    }).execute(returnResult)
     completeFlag.await()
+    res
   }
 
 }
@@ -200,7 +212,8 @@ trait ReportHandler {
    * 完成
    *
    * @param taskId   任务ID
+   * @param result 结果
    */
-  def complete(taskId: String)
+  def complete(taskId: String, result: String)
 
 }
