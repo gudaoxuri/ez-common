@@ -32,8 +32,7 @@ object BeanHelper {
     if (filterAnnotations != null && filterAnnotations.nonEmpty) {
       getFieldAnnotations(filters, beanClazz, filterAnnotations)
     }
-    val rm = scala.reflect.runtime.currentMirror
-    rm.classSymbol(beanClazz).toType.members.collect {
+    scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.members.collect {
       case m: MethodSymbol if m.isGetter && m.isPublic
         && (filterNames == null || filterNames.isEmpty || !filterNames.contains(m.name))
       =>
@@ -57,9 +56,8 @@ object BeanHelper {
     if (filterAnnotations != null && filterAnnotations.nonEmpty) {
       getFieldAnnotations(filters, bean.getClass, filterAnnotations)
     }
-    val rm = scala.reflect.runtime.currentMirror
-    val instanceMirror = rm.reflect(bean)
-    rm.classSymbol(bean.getClass).toType.members.collect {
+    val instanceMirror = scala.reflect.runtime.currentMirror.reflect(bean)
+    scala.reflect.runtime.currentMirror.classSymbol(bean.getClass).toType.members.collect {
       case m: MethodSymbol if m.isGetter && m.isPublic
         && (filterNames == null || filterNames.isEmpty || !filterNames.contains(m.name))
       =>
@@ -76,8 +74,7 @@ object BeanHelper {
    */
   @tailrec
   private def getFieldAnnotations(container: ArrayBuffer[String], beanClazz: Class[_], annotations: Seq[Class[_ <: StaticAnnotation]]) {
-    val rm = scala.reflect.runtime.currentMirror
-    rm.classSymbol(beanClazz).toType.members.collect {
+    scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.members.collect {
       case m if !m.isMethod &&
         annotations.exists(ann => m.annotations.exists(ann.getName == _.toString)) =>
         container += m.name.toString.trim
