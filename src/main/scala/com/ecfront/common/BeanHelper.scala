@@ -11,6 +11,8 @@ import scala.reflect.runtime.universe._
  */
 object BeanHelper {
 
+  val runtime = runtimeMirror(getClass.getClassLoader)
+
   private val copyPropertiesAdapter = new NullAwareBeanUtilsBean
 
   /**
@@ -67,6 +69,25 @@ object BeanHelper {
   }
 
   /**
+   * 获取Bean中指定字段的值
+   * @param bean 目标Bean
+   * @param fieldName 指定字段
+   */
+  def getValue(bean: AnyRef, fieldName: String): Option[Any] = {
+    if (bean == null) {
+      throw new IllegalArgumentException("No bean specified")
+    }
+    val instanceMirror = scala.reflect.runtime.currentMirror.reflect(bean)
+    var value: Any = null
+    scala.reflect.runtime.currentMirror.classSymbol(bean.getClass).toType.members.collect {
+      case m: MethodSymbol if m.isGetter && m.isPublic && fieldName == m.name
+      =>
+        value = instanceMirror.reflectMethod(m).apply()
+    }
+    Some(value)
+  }
+
+  /**
    * 递归获取带指定注解的字段
    * @param container 存放字段容器
    * @param beanClazz 目标Bean
@@ -86,6 +107,24 @@ object BeanHelper {
         }
     }
   }
+
+  /**
+   * 获取类注解
+   * @tparam A 注解类型
+   * @param beanClazz 目标类的类型
+   * @return 注解对象
+   */
+  def getClassAnnotation[A: TypeTag](beanClazz: Class[_]): Option[A] = {
+    val typeAnnotation = typeOf[A]
+    scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.typeSymbol.asClass.annotations.find(a => a.tree.tpe == typeAnnotation).map {
+      entityClass =>
+        val value = entityClass.tree.children.tail.map(_.productElement(0).asInstanceOf[Constant].value)
+        runtime.reflectClass(typeAnnotation.typeSymbol.asClass).
+          reflectConstructor(typeAnnotation.decl(termNames.CONSTRUCTOR).asMethod)(value: _*).
+          asInstanceOf[A]
+    }
+  }
+
 }
 
 private class NullAwareBeanUtilsBean extends BeanUtilsBean {

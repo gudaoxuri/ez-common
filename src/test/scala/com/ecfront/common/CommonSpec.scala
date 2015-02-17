@@ -3,6 +3,7 @@ package com.ecfront.common
 import com.fasterxml.jackson.databind.JsonNode
 import org.scalatest._
 
+import scala.annotation.StaticAnnotation
 import scala.beans.BeanProperty
 
 class CommonSpec extends FunSuite {
@@ -37,10 +38,13 @@ class CommonSpec extends FunSuite {
     assert(values("id") == "id001")
     assert(values("name") == "张三")
     assert(values("bool") == true)
+
+    assert(BeanHelper.getClassAnnotation[Entity](classOf[TestModel]).get.idField=="id")
+
   }
 }
 
-
+@Entity(idField = "id")
 case class TestModel(
                       @BeanProperty var name: String,
                       @BeanProperty var bool: Boolean,
@@ -56,4 +60,6 @@ abstract class IdModel {
 
 
 case class Config(loglevel: String)
+
+case class Entity(idField: String) extends StaticAnnotation
 
