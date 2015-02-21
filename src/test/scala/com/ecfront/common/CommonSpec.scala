@@ -18,29 +18,35 @@ class CommonSpec extends FunSuite {
   }
 
   test("Json测试") {
-    val a = JsonHelper.toJson(Config("aaa"))
-    val b = JsonHelper.toJson( """{"a_key":"a_val"}""")
+    JsonHelper.toJson(Config("aaa"))
+    JsonHelper.toJson( """{"a_key":"a_val"}""")
     JsonHelper.toJson( """{"a_key":"a_val"}""")
     print(JsonHelper.toJsonString(JsonHelper.createObjectNode().set("", JsonHelper.createObjectNode().put("a_key", "a_val"))))
   }
 
   test("Bean测试") {
-    val fields = BeanHelper.getFields(classOf[TestModel])
-    assert(fields.size == 3)
+    val fields = BeanHelper.findFields(classOf[TestModel])
+    assert(fields.size == 4)
     assert(fields("id") == "String")
     assert(fields("name") == "String")
     assert(fields("bool") == "Boolean")
 
     val model = TestModel("张三", true, 14)
     model.id = "id001"
-    val values = BeanHelper.getValues(model)
-    assert(values.size == 3)
+    val values = BeanHelper.findValues(model)
+    assert(values.size == 6)
     assert(values("id") == "id001")
     assert(values("name") == "张三")
     assert(values("bool") == true)
 
-    assert(BeanHelper.getClassAnnotation[Entity](classOf[TestModel]).get.idField=="id")
+    assert(BeanHelper.getClassAnnotation[Entity](classOf[TestModel]).get.idField == "id")
 
+    val fieldAnnotations = BeanHelper.findFieldAnnotations(classOf[TestModel])
+    assert(fieldAnnotations.size == 6)
+    assert(fieldAnnotations(0).annotation.isInstanceOf[ManyToMany])
+    assert(fieldAnnotations(0).annotation.asInstanceOf[ManyToMany].master)
+    assert(!fieldAnnotations(0).annotation.asInstanceOf[ManyToMany].fetch)
+    assert(fieldAnnotations(0).fieldName == "relA")
   }
 }
 
@@ -48,13 +54,13 @@ class CommonSpec extends FunSuite {
 case class TestModel(
                       @BeanProperty var name: String,
                       @BeanProperty var bool: Boolean,
-                      @BeanProperty @Ignore var age: Int
+                      @Ignore var age: Int
                       ) extends IdModel {
+  @ManyToMany(master = true, fetch = false) var relA: List[String] = _
 }
 
 abstract class IdModel {
   @BeanProperty var id: String = _
-  @BeanProperty
   @Ignore var title: String = _
 }
 
@@ -62,4 +68,7 @@ abstract class IdModel {
 case class Config(loglevel: String)
 
 case class Entity(idField: String) extends StaticAnnotation
+
+@scala.annotation.meta.field
+case class ManyToMany(master: Boolean, fetch: Boolean) extends Ignore
 

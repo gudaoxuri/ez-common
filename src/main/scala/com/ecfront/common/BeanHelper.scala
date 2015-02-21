@@ -28,36 +28,30 @@ object BeanHelper {
    * @param filterNames 要过滤的名称
    * @param filterAnnotations 要过滤的注解
    */
-  def getFields(beanClazz: Class[_], filterNames: Seq[String] = Seq(), filterAnnotations: Seq[Class[_ <: StaticAnnotation]] = Seq(classOf[Ignore])): Map[String, String] = {
+  def findFields(beanClazz: Class[_], filterNames: Seq[String] = Seq(), filterAnnotations: Seq[Class[_ <: StaticAnnotation]] = Seq(classOf[Ignore])): Map[String, String] = {
     val fields = collection.mutable.Map[String, String]()
-    val filters = ArrayBuffer[String]()
-    if (filterAnnotations != null && filterAnnotations.nonEmpty) {
-      getFieldAnnotations(filters, beanClazz, filterAnnotations)
-    }
+    val filter = findFieldAnnotations(beanClazz, filterAnnotations)
     scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.members.collect {
       case m: MethodSymbol if m.isGetter && m.isPublic
         && (filterNames == null || filterNames.isEmpty || !filterNames.contains(m.name))
       =>
-        fields += (m.name.toString.trim -> m.returnType.toString.trim)
+        if (!filter.exists(_.fieldName == m.name.toString.trim)) {
+          fields += (m.name.toString.trim -> m.returnType.toString.trim)
+        }
     }
-    fields.filter(f => !filters.contains(f._1)).toMap
+    fields.toMap
   }
 
   /**
    * 获取Bean中字段的值
    * @param bean 目标Bean
    * @param filterNames 要过滤的名称
-   * @param filterAnnotations 要过滤的注解
    */
-  def getValues(bean: AnyRef, filterNames: Seq[String] = Seq(), filterAnnotations: Seq[Class[_ <: StaticAnnotation]] = Seq(classOf[Ignore])): Map[String, Any] = {
+  def findValues(bean: AnyRef, filterNames: Seq[String] = Seq()): Map[String, Any] = {
     if (bean == null) {
       throw new IllegalArgumentException("No bean specified")
     }
     val fields = collection.mutable.Map[String, Any]()
-    val filters = ArrayBuffer[String]()
-    if (filterAnnotations != null && filterAnnotations.nonEmpty) {
-      getFieldAnnotations(filters, bean.getClass, filterAnnotations)
-    }
     val instanceMirror = scala.reflect.runtime.currentMirror.reflect(bean)
     scala.reflect.runtime.currentMirror.classSymbol(bean.getClass).toType.members.collect {
       case m: MethodSymbol if m.isGetter && m.isPublic
@@ -65,7 +59,7 @@ object BeanHelper {
       =>
         fields += (m.name.toString.trim -> instanceMirror.reflectMethod(m).apply())
     }
-    fields.filter(f => !filters.contains(f._1)).toMap
+    fields.toMap
   }
 
   /**
@@ -89,21 +83,32 @@ object BeanHelper {
 
   /**
    * 递归获取带指定注解的字段
-   * @param container 存放字段容器
    * @param beanClazz 目标Bean
-   * @param annotations 要过滤的注解
-   */
+   * @param annotations 指定的注解，为空时获取所有注解
+   **/
+  def findFieldAnnotations(beanClazz: Class[_], annotations: Seq[Class[_ <: StaticAnnotation]] = Seq()): ArrayBuffer[AnnotationInfo] = {
+    val result = ArrayBuffer[AnnotationInfo]()
+    findFieldAnnotations(result, beanClazz, annotations)
+    result
+  }
+
   @tailrec
-  private def getFieldAnnotations(container: ArrayBuffer[String], beanClazz: Class[_], annotations: Seq[Class[_ <: StaticAnnotation]]) {
+  private def findFieldAnnotations(container: ArrayBuffer[AnnotationInfo], beanClazz: Class[_], annotations: Seq[Class[_ <: StaticAnnotation]]) {
     scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.members.collect {
-      case m if !m.isMethod &&
-        annotations.exists(ann => m.annotations.exists(ann.getName == _.toString)) =>
-        container += m.name.toString.trim
+      case m if !m.isMethod && (annotations.isEmpty || annotations.exists(ann => m.annotations.exists(ann.getName == _.toString))) =>
+        m.annotations.map {
+          annotation =>
+            val value = annotation.tree.children.tail.map(_.productElement(0).asInstanceOf[Constant].value)
+            val typeAnnotation = annotation.tree.tpe
+            val res = runtime.reflectClass(typeAnnotation.typeSymbol.asClass).
+              reflectConstructor(typeAnnotation.decl(termNames.CONSTRUCTOR).asMethod)(value: _*)
+            container += AnnotationInfo(res, m.name.toString.trim)
+        }
     }
     beanClazz.getGenericSuperclass match {
       case c: Class[_] =>
         if (c != classOf[Object]) {
-          getFieldAnnotations(container, c, annotations)
+          findFieldAnnotations(container, c, annotations)
         }
     }
   }
@@ -117,8 +122,8 @@ object BeanHelper {
   def getClassAnnotation[A: TypeTag](beanClazz: Class[_]): Option[A] = {
     val typeAnnotation = typeOf[A]
     scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.typeSymbol.asClass.annotations.find(a => a.tree.tpe == typeAnnotation).map {
-      entityClass =>
-        val value = entityClass.tree.children.tail.map(_.productElement(0).asInstanceOf[Constant].value)
+      annotation =>
+        val value = annotation.tree.children.tail.map(_.productElement(0).asInstanceOf[Constant].value)
         runtime.reflectClass(typeAnnotation.typeSymbol.asClass).
           reflectConstructor(typeAnnotation.decl(termNames.CONSTRUCTOR).asMethod)(value: _*).
           asInstanceOf[A]
@@ -134,6 +139,8 @@ private class NullAwareBeanUtilsBean extends BeanUtilsBean {
     }
   }
 }
+
+case class AnnotationInfo(annotation: Any, fieldName: String)
 
 @scala.annotation.meta.field
 class Ignore extends scala.annotation.StaticAnnotation
