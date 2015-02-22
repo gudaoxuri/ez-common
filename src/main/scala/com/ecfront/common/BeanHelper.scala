@@ -30,11 +30,10 @@ object BeanHelper {
    */
   def findFields(beanClazz: Class[_], filterNames: Seq[String] = Seq(), filterAnnotations: Seq[Class[_ <: StaticAnnotation]] = Seq(classOf[Ignore])): Map[String, String] = {
     val fields = collection.mutable.Map[String, String]()
-    val filter = findFieldAnnotations(beanClazz, filterAnnotations)
+    val filter =if(filterAnnotations.nonEmpty) findFieldAnnotations(beanClazz, filterAnnotations) else ArrayBuffer[AnnotationInfo]()
     scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.members.collect {
       case method: MethodSymbol if method.isGetter && method.isPublic
-        && (filterNames == null || filterNames.isEmpty || !filterNames.contains(method.name.toString.trim))
-      =>
+        && (filterNames == null || filterNames.isEmpty || !filterNames.contains(method.name.toString.trim)) =>
         if (!filter.exists(_.fieldName == method.name.toString.trim)) {
           fields += (method.name.toString.trim -> method.returnType.toString.trim)
         }
