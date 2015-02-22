@@ -33,7 +33,7 @@ object BeanHelper {
     val filter = findFieldAnnotations(beanClazz, filterAnnotations)
     scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.members.collect {
       case method: MethodSymbol if method.isGetter && method.isPublic
-        && (filterNames == null || filterNames.isEmpty || !filterNames.contains(method.name))
+        && (filterNames == null || filterNames.isEmpty || !filterNames.contains(method.name.toString.trim))
       =>
         if (!filter.exists(_.fieldName == method.name.toString.trim)) {
           fields += (method.name.toString.trim -> method.returnType.toString.trim)
@@ -52,8 +52,7 @@ object BeanHelper {
     val m = rm.reflect(bean)
     scala.reflect.runtime.currentMirror.classSymbol(bean.getClass).toType.members.collect {
       case method: MethodSymbol if method.isGetter && method.isPublic
-        && (filterNames == null || filterNames.isEmpty || !filterNames.contains(method.name))
-      =>
+        && (filterNames == null || filterNames.isEmpty || !filterNames.contains(method.name.toString.trim)) =>
         fields += (method.name.toString.trim -> m.reflectMethod(method).apply())
     }
     fields.toMap
@@ -66,16 +65,21 @@ object BeanHelper {
    */
   def getValue(bean: AnyRef, fieldName: String): Option[Any] = {
     val m = rm.reflect(bean)
-    val t = scala.reflect.runtime.currentMirror.classSymbol(bean.getClass).toType
-    val term = t.decl(TermName(fieldName)).asTerm
-    Some(m.reflectField(term).get)
+    var value: Any = null
+    scala.reflect.runtime.currentMirror.classSymbol(bean.getClass).toType.members.collect {
+      case term: TermSymbol if term.name.toString.trim ==fieldName =>
+        value=m.reflectField(term).get
+    }
+    Some(value)
+
   }
 
   def setValue(bean: AnyRef, fieldName: String, value: Any): Unit = {
     val m = rm.reflect(bean)
-    val t = scala.reflect.runtime.currentMirror.classSymbol(bean.getClass).toType
-    val term = t.decl(TermName(fieldName)).asTerm
-    m.reflectField(term).set(value)
+    scala.reflect.runtime.currentMirror.classSymbol(bean.getClass).toType.members.collect {
+      case term: TermSymbol if term.name.toString.trim ==fieldName =>
+        m.reflectField(term).set(value)
+    }
   }
 
   /**

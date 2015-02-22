@@ -43,6 +43,7 @@ class CommonSpec extends FunSuite {
     assert(model.name=="李四")
 
     assert(BeanHelper.getValue(model,"name").get=="李四")
+    assert(BeanHelper.findValues(model).get("name").get=="李四")
 
     assert(BeanHelper.getClassAnnotation[Entity](classOf[TestModel]).get.idField == "id")
 
@@ -63,6 +64,8 @@ case class TestModel(
                       ) extends IdModel {
   @ManyToMany(master = true, fetch = false) var relA: List[String] = _
 }
+
+case class Test2Model()
 
 abstract class IdModel {
   @BeanProperty var id: String = _
