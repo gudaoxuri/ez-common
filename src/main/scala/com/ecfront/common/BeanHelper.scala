@@ -30,7 +30,7 @@ object BeanHelper {
    */
   def findFields(beanClazz: Class[_], filterNames: Seq[String] = Seq(), filterAnnotations: Seq[Class[_ <: StaticAnnotation]] = Seq(classOf[Ignore])): Map[String, String] = {
     val fields = collection.mutable.Map[String, String]()
-    val filter =if(filterAnnotations.nonEmpty) findFieldAnnotations(beanClazz, filterAnnotations) else ArrayBuffer[AnnotationInfo]()
+    val filter = if (filterAnnotations.nonEmpty) findFieldAnnotations(beanClazz, filterAnnotations) else ArrayBuffer[AnnotationInfo]()
     scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.members.collect {
       case method: MethodSymbol if method.isGetter && method.isPublic
         && (filterNames == null || filterNames.isEmpty || !filterNames.contains(method.name.toString.trim)) =>
@@ -66,8 +66,8 @@ object BeanHelper {
     val m = rm.reflect(bean)
     var value: Any = null
     scala.reflect.runtime.currentMirror.classSymbol(bean.getClass).toType.members.collect {
-      case term: TermSymbol if term.name.toString.trim ==fieldName =>
-        value=m.reflectField(term).get
+      case term: TermSymbol if term.name.toString.trim == fieldName =>
+        value = m.reflectField(term).get
     }
     Some(value)
 
@@ -76,7 +76,7 @@ object BeanHelper {
   def setValue(bean: AnyRef, fieldName: String, value: Any): Unit = {
     val m = rm.reflect(bean)
     scala.reflect.runtime.currentMirror.classSymbol(bean.getClass).toType.members.collect {
-      case term: TermSymbol if term.name.toString.trim ==fieldName =>
+      case term: TermSymbol if term.name.toString.trim == fieldName =>
         m.reflectField(term).set(value)
     }
   }
@@ -120,14 +120,30 @@ object BeanHelper {
    * @return 注解对象
    */
   def getClassAnnotation[A: TypeTag](beanClazz: Class[_]): Option[A] = {
-    val typeAnnotation = typeOf[A]
-    scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.typeSymbol.asClass.annotations.find(a => a.tree.tpe == typeAnnotation).map {
+    val res = getClassAnnotation(typeOf[A], beanClazz)
+    if (res != null) {
+      Some(res.get.asInstanceOf[A])
+    } else {
+      null
+    }
+  }
+
+  private def getClassAnnotation(typeAnnotation: Type, beanClazz: Class[_]): Option[Any] = {
+    var res = scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.typeSymbol.asClass.annotations.find(a => a.tree.tpe == typeAnnotation).map {
       annotation =>
         val value = annotation.tree.children.tail.map(_.productElement(0).asInstanceOf[Constant].value)
         rm.reflectClass(typeAnnotation.typeSymbol.asClass).
-          reflectConstructor(typeAnnotation.decl(termNames.CONSTRUCTOR).asMethod)(value: _*).
-          asInstanceOf[A]
+          reflectConstructor(typeAnnotation.decl(termNames.CONSTRUCTOR).asMethod)(value: _*)
     }
+    if (res == None) {
+      beanClazz.getGenericSuperclass match {
+        case c: Class[_] =>
+          if (c != classOf[Object]) {
+            res = getClassAnnotation(typeAnnotation, c)
+          }
+      }
+    }
+    res
   }
 
 }

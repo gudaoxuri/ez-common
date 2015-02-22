@@ -56,7 +56,6 @@ class CommonSpec extends FunSuite {
   }
 }
 
-@Entity(idField = "id")
 case class TestModel(
                       @BeanProperty var name: String,
                       @BeanProperty var bool: Boolean,
@@ -67,6 +66,7 @@ case class TestModel(
 
 case class Test2Model()
 
+@Entity(idField = "id")
 abstract class IdModel {
   @BeanProperty var id: String = _
   @Ignore var title: String = _
