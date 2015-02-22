@@ -11,7 +11,7 @@ import scala.reflect.runtime.universe._
  */
 object BeanHelper {
 
-  val runtime = runtimeMirror(getClass.getClassLoader)
+  val rm = runtimeMirror(getClass.getClassLoader)
 
   private val copyPropertiesAdapter = new NullAwareBeanUtilsBean
 
@@ -32,11 +32,11 @@ object BeanHelper {
     val fields = collection.mutable.Map[String, String]()
     val filter = findFieldAnnotations(beanClazz, filterAnnotations)
     scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.members.collect {
-      case m: MethodSymbol if m.isGetter && m.isPublic
-        && (filterNames == null || filterNames.isEmpty || !filterNames.contains(m.name))
+      case method: MethodSymbol if method.isGetter && method.isPublic
+        && (filterNames == null || filterNames.isEmpty || !filterNames.contains(method.name))
       =>
-        if (!filter.exists(_.fieldName == m.name.toString.trim)) {
-          fields += (m.name.toString.trim -> m.returnType.toString.trim)
+        if (!filter.exists(_.fieldName == method.name.toString.trim)) {
+          fields += (method.name.toString.trim -> method.returnType.toString.trim)
         }
     }
     fields.toMap
@@ -48,16 +48,13 @@ object BeanHelper {
    * @param filterNames 要过滤的名称
    */
   def findValues(bean: AnyRef, filterNames: Seq[String] = Seq()): Map[String, Any] = {
-    if (bean == null) {
-      throw new IllegalArgumentException("No bean specified")
-    }
     val fields = collection.mutable.Map[String, Any]()
-    val instanceMirror = scala.reflect.runtime.currentMirror.reflect(bean)
+    val m = rm.reflect(bean)
     scala.reflect.runtime.currentMirror.classSymbol(bean.getClass).toType.members.collect {
-      case m: MethodSymbol if m.isGetter && m.isPublic
-        && (filterNames == null || filterNames.isEmpty || !filterNames.contains(m.name))
+      case method: MethodSymbol if method.isGetter && method.isPublic
+        && (filterNames == null || filterNames.isEmpty || !filterNames.contains(method.name))
       =>
-        fields += (m.name.toString.trim -> instanceMirror.reflectMethod(m).apply())
+        fields += (method.name.toString.trim -> m.reflectMethod(method).apply())
     }
     fields.toMap
   }
@@ -68,17 +65,17 @@ object BeanHelper {
    * @param fieldName 指定字段
    */
   def getValue(bean: AnyRef, fieldName: String): Option[Any] = {
-    if (bean == null) {
-      throw new IllegalArgumentException("No bean specified")
-    }
-    val instanceMirror = scala.reflect.runtime.currentMirror.reflect(bean)
-    var value: Any = null
-    scala.reflect.runtime.currentMirror.classSymbol(bean.getClass).toType.members.collect {
-      case m: MethodSymbol if m.isGetter && m.isPublic && fieldName == m.name
-      =>
-        value = instanceMirror.reflectMethod(m).apply()
-    }
-    Some(value)
+    val m = rm.reflect(bean)
+    val t = scala.reflect.runtime.currentMirror.classSymbol(bean.getClass).toType
+    val term = t.decl(TermName(fieldName)).asTerm
+    Some(m.reflectField(term).get)
+  }
+
+  def setValue(bean: AnyRef, fieldName: String, value: Any): Unit = {
+    val m = rm.reflect(bean)
+    val t = scala.reflect.runtime.currentMirror.classSymbol(bean.getClass).toType
+    val term = t.decl(TermName(fieldName)).asTerm
+    m.reflectField(term).set(value)
   }
 
   /**
@@ -100,7 +97,7 @@ object BeanHelper {
           annotation =>
             val value = annotation.tree.children.tail.map(_.productElement(0).asInstanceOf[Constant].value)
             val typeAnnotation = annotation.tree.tpe
-            val res = runtime.reflectClass(typeAnnotation.typeSymbol.asClass).
+            val res = rm.reflectClass(typeAnnotation.typeSymbol.asClass).
               reflectConstructor(typeAnnotation.decl(termNames.CONSTRUCTOR).asMethod)(value: _*)
             container += AnnotationInfo(res, m.name.toString.trim)
         }
@@ -124,7 +121,7 @@ object BeanHelper {
     scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.typeSymbol.asClass.annotations.find(a => a.tree.tpe == typeAnnotation).map {
       annotation =>
         val value = annotation.tree.children.tail.map(_.productElement(0).asInstanceOf[Constant].value)
-        runtime.reflectClass(typeAnnotation.typeSymbol.asClass).
+        rm.reflectClass(typeAnnotation.typeSymbol.asClass).
           reflectConstructor(typeAnnotation.decl(termNames.CONSTRUCTOR).asMethod)(value: _*).
           asInstanceOf[A]
     }

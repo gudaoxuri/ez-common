@@ -39,6 +39,11 @@ class CommonSpec extends FunSuite {
     assert(values("name") == "张三")
     assert(values("bool") == true)
 
+    BeanHelper.setValue(model,"name","李四")
+    assert(model.name=="李四")
+
+    assert(BeanHelper.getValue(model,"name").get=="李四")
+
     assert(BeanHelper.getClassAnnotation[Entity](classOf[TestModel]).get.idField == "id")
 
     val fieldAnnotations = BeanHelper.findFieldAnnotations(classOf[TestModel])
