@@ -1,6 +1,23 @@
 EZ Common
 ===
-### EZ系列的公共模块，实现了诸如配置文件读取、Json与Scala对象转换等基础功能。
+### EZ系列的公共模块。
+
+##功能
+
+1. 配置文件读取并转Scala对象（ConfigHelper）
+1. Json与Scala对象转换（JsonHelper）
+1. Scala反射操作（BeanHelper）
+1. Shell脚本操作（ShellHelper）
+1. 加密（EncryptHelper）
+
+##使用
+
+    <dependency>
+        <groupId>com.ecfront</groupId>
+        <artifactId>ez-common</artifactId>
+        <version>0.3.2</version>
+    </dependency>
+
 
 ### Check out sources
 `git clone https://github.com/gudaoxuri/ez-common.git`
