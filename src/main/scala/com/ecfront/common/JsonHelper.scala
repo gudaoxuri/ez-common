@@ -46,11 +46,12 @@ object JsonHelper {
           case c if c == classOf[String] =>
             o.asInstanceOf[E]
           case c if c == classOf[Void] =>
-             null.asInstanceOf[E]
+            null.asInstanceOf[E]
           case _ =>
             mapper.readValue(o, clazz)
         }
       case o: JsonNode => mapper.readValue(o.toString, clazz)
+      case _ => mapper.readValue(mapper.writeValueAsString(obj), clazz)
     }
   }
 
