@@ -85,6 +85,7 @@ object BeanHelper {
    * 递归获取带指定注解的字段
    * @param beanClazz 目标Bean
    * @param annotations 指定的注解，为空时获取所有注解
+   * @return 注解信息（注解名称及对应的字段）
    **/
   def findFieldAnnotations(beanClazz: Class[_], annotations: Seq[Class[_ <: StaticAnnotation]] = Seq()): ArrayBuffer[AnnotationInfo] = {
     val result = ArrayBuffer[AnnotationInfo]()
@@ -95,14 +96,16 @@ object BeanHelper {
   @tailrec
   private def findFieldAnnotations(container: ArrayBuffer[AnnotationInfo], beanClazz: Class[_], annotations: Seq[Class[_ <: StaticAnnotation]]) {
     scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.members.collect {
-      case m if !m.isMethod && (annotations.isEmpty || annotations.exists(ann => m.annotations.exists(ann.getName == _.toString))) =>
+      case m if !m.isMethod =>
         m.annotations.map {
           annotation =>
-            val value = annotation.tree.children.tail.map(_.productElement(0).asInstanceOf[Constant].value)
-            val typeAnnotation = annotation.tree.tpe
-            val res = rm.reflectClass(typeAnnotation.typeSymbol.asClass).
-              reflectConstructor(typeAnnotation.decl(termNames.CONSTRUCTOR).asMethod)(value: _*)
-            container += AnnotationInfo(res, m.name.toString.trim)
+            if (annotations.isEmpty || annotations.exists(ann => ann.getName == annotation.toString)) {
+              val value = annotation.tree.children.tail.map(_.productElement(0).asInstanceOf[Constant].value)
+              val typeAnnotation = annotation.tree.tpe
+              val res = rm.reflectClass(typeAnnotation.typeSymbol.asClass).
+                reflectConstructor(typeAnnotation.decl(termNames.CONSTRUCTOR).asMethod)(value: _*)
+              container += AnnotationInfo(res, m.name.toString.trim)
+            }
         }
     }
     beanClazz.getGenericSuperclass match {

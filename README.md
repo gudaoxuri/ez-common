@@ -15,7 +15,7 @@ EZ Common
     <dependency>
         <groupId>com.ecfront</groupId>
         <artifactId>ez-common</artifactId>
-        <version>0.3.2</version>
+        <version>0.3.4</version>
     </dependency>
 
 
