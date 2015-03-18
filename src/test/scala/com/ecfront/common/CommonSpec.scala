@@ -55,9 +55,9 @@ class CommonSpec extends FunSuite {
     assert(fieldAnnotations(0).fieldName == "relA")
 
 
-    val methodAnnotations=BeanHelper.findMethodAnnotations(classOf[TestModel],Seq(classOf[Get]))
-    assert(BeanHelper.invoke(model,methodAnnotations(0).method)(10,2) == 5)
-    assert(BeanHelper.invoke(model,methodAnnotations(1).method)(10,2) == 20)
+    val methodAnnotations = BeanHelper.findMethodAnnotations(classOf[TestModel], Seq(classOf[Get]))
+    assert(BeanHelper.invoke(model, methodAnnotations(0).method)(10, 2) == 5)
+    assert(BeanHelper.invoke(model, methodAnnotations(1).method)(10, 2) == 20)
   }
 
   test("加密测试") {

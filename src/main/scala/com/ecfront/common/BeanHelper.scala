@@ -99,9 +99,9 @@ object BeanHelper {
       case m if !m.isMethod =>
         m.annotations.map {
           annotation =>
-            val tmp=annotation.toString
-            val annotationName=if(tmp.indexOf("(")== -1) tmp else tmp.substring(0,tmp.lastIndexOf("("))
-            if (annotations.isEmpty || annotations.exists(ann => ann.getName ==annotationName)) {
+            val tmp = annotation.toString
+            val annotationName = if (tmp.indexOf("(") == -1) tmp else tmp.substring(0, tmp.lastIndexOf("("))
+            if (annotations.isEmpty || annotations.exists(ann => ann.getName == annotationName)) {
               val value = annotation.tree.children.tail.map(_.productElement(0).asInstanceOf[Constant].value)
               val typeAnnotation = annotation.tree.tpe
               val res = rm.reflectClass(typeAnnotation.typeSymbol.asClass).
@@ -132,18 +132,19 @@ object BeanHelper {
 
   @tailrec
   private def findMethodAnnotations(container: ArrayBuffer[methodAnnotationInfo], beanClazz: Class[_], annotations: Seq[Class[_ <: StaticAnnotation]]) {
-    scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.members.collect {
+    val tf = scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType
+    tf.members.collect {
       case m if m.isMethod =>
         m.annotations.map {
           annotation =>
-            val tmp=annotation.toString
-            val annotationName=if(tmp.indexOf("(")== -1) tmp else tmp.substring(0,tmp.lastIndexOf("("))
-            if (annotations.isEmpty || annotations.exists(ann => ann.getName ==annotationName)) {
+            val tmp = annotation.toString
+            val annotationName = if (tmp.indexOf("(") == -1) tmp else tmp.substring(0, tmp.lastIndexOf("("))
+            if (annotations.isEmpty || annotations.exists(ann => ann.getName == annotationName)) {
               val value = annotation.tree.children.tail.map(_.productElement(0).asInstanceOf[Constant].value)
               val typeAnnotation = annotation.tree.tpe
               val res = rm.reflectClass(typeAnnotation.typeSymbol.asClass).
                 reflectConstructor(typeAnnotation.decl(termNames.CONSTRUCTOR).asMethod)(value: _*)
-              container += methodAnnotationInfo(res, m.name.toString.trim)
+              container += methodAnnotationInfo(res, tf.member(TermName(m.name.toString.trim)).asMethod)
             }
         }
     }
@@ -155,9 +156,8 @@ object BeanHelper {
     }
   }
 
-  def invoke(obj: Any, method: String): MethodMirror = {
-    val ref=rm.reflect(obj)
-    ref.reflectMethod(ref.symbol.typeSignature.member(TermName(method)).asMethod)
+  def invoke(obj: Any, method: MethodSymbol): MethodMirror = {
+    rm.reflect(obj).reflectMethod(method)
   }
 
   /**
@@ -204,7 +204,7 @@ private class NullAwareBeanUtilsBean extends BeanUtilsBean {
 
 case class FieldAnnotationInfo(annotation: Any, fieldName: String)
 
-case class methodAnnotationInfo(annotation: Any, method: String)
+case class methodAnnotationInfo(annotation: Any, method: MethodSymbol)
 
 @scala.annotation.meta.field
 class Ignore extends scala.annotation.StaticAnnotation
