@@ -39,11 +39,11 @@ class CommonSpec extends FunSuite {
     assert(values("name") == "张三")
     assert(values("bool") == true)
 
-    BeanHelper.setValue(model,"name","李四")
-    assert(model.name=="李四")
+    BeanHelper.setValue(model, "name", "李四")
+    assert(model.name == "李四")
 
-    assert(BeanHelper.getValue(model,"name").get=="李四")
-    assert(BeanHelper.findValues(model).get("name").get=="李四")
+    assert(BeanHelper.getValue(model, "name").get == "李四")
+    assert(BeanHelper.findValues(model).get("name").get == "李四")
 
     assert(BeanHelper.getClassAnnotation[Entity](classOf[TestModel]).get.idField == "id")
 
@@ -53,10 +53,15 @@ class CommonSpec extends FunSuite {
     assert(fieldAnnotations(0).annotation.asInstanceOf[ManyToMany].master)
     assert(!fieldAnnotations(0).annotation.asInstanceOf[ManyToMany].fetch)
     assert(fieldAnnotations(0).fieldName == "relA")
+
+
+    val methodAnnotations=BeanHelper.findMethodAnnotations(classOf[TestModel],Seq(classOf[Get]))
+    assert(BeanHelper.invoke(model,methodAnnotations(0).method)(10,2) == 5)
+    assert(BeanHelper.invoke(model,methodAnnotations(1).method)(10,2) == 20)
   }
 
   test("加密测试") {
-    assert(EncryptHelper.encrypt("gudaoxuri")=="70C0CC2B7BF8A8EBCD7B59C49DDDA9A1E551122BA5D7AB3B7B02141D4CE4C626".toLowerCase())
+    assert(EncryptHelper.encrypt("gudaoxuri") == "70C0CC2B7BF8A8EBCD7B59C49DDDA9A1E551122BA5D7AB3B7B02141D4CE4C626".toLowerCase())
   }
 
 }
@@ -67,6 +72,12 @@ case class TestModel(
                       @Ignore var age: Int
                       ) extends IdModel {
   @ManyToMany(master = true, fetch = false) var relA: List[String] = _
+
+  @Get(url = "/multiply/")
+  def multiply(x: Int, y: Int) = x * y
+
+  @Get(url = "/divide/")
+  def divide(x: Int, y: Int) = x / y
 }
 
 case class Test2Model()
@@ -84,4 +95,6 @@ case class Entity(idField: String) extends StaticAnnotation
 
 @scala.annotation.meta.field
 case class ManyToMany(master: Boolean, fetch: Boolean) extends Ignore
+
+case class Get(url: String) extends StaticAnnotation
 

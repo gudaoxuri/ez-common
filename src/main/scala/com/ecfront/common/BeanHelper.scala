@@ -30,7 +30,7 @@ object BeanHelper {
    */
   def findFields(beanClazz: Class[_], filterNames: Seq[String] = Seq(), filterAnnotations: Seq[Class[_ <: StaticAnnotation]] = Seq(classOf[Ignore])): Map[String, String] = {
     val fields = collection.mutable.Map[String, String]()
-    val filter = if (filterAnnotations.nonEmpty) findFieldAnnotations(beanClazz, filterAnnotations) else ArrayBuffer[AnnotationInfo]()
+    val filter = if (filterAnnotations.nonEmpty) findFieldAnnotations(beanClazz, filterAnnotations) else ArrayBuffer[FieldAnnotationInfo]()
     scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.members.collect {
       case method: MethodSymbol if method.isGetter && method.isPublic
         && (filterNames == null || filterNames.isEmpty || !filterNames.contains(method.name.toString.trim)) =>
@@ -87,24 +87,26 @@ object BeanHelper {
    * @param annotations 指定的注解，为空时获取所有注解
    * @return 注解信息（注解名称及对应的字段）
    **/
-  def findFieldAnnotations(beanClazz: Class[_], annotations: Seq[Class[_ <: StaticAnnotation]] = Seq()): ArrayBuffer[AnnotationInfo] = {
-    val result = ArrayBuffer[AnnotationInfo]()
+  def findFieldAnnotations(beanClazz: Class[_], annotations: Seq[Class[_ <: StaticAnnotation]] = Seq()): ArrayBuffer[FieldAnnotationInfo] = {
+    val result = ArrayBuffer[FieldAnnotationInfo]()
     findFieldAnnotations(result, beanClazz, annotations)
     result
   }
 
   @tailrec
-  private def findFieldAnnotations(container: ArrayBuffer[AnnotationInfo], beanClazz: Class[_], annotations: Seq[Class[_ <: StaticAnnotation]]) {
+  private def findFieldAnnotations(container: ArrayBuffer[FieldAnnotationInfo], beanClazz: Class[_], annotations: Seq[Class[_ <: StaticAnnotation]]) {
     scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.members.collect {
       case m if !m.isMethod =>
         m.annotations.map {
           annotation =>
-            if (annotations.isEmpty || annotations.exists(ann => ann.getName == annotation.toString)) {
+            val tmp=annotation.toString
+            val annotationName=if(tmp.indexOf("(")== -1) tmp else tmp.substring(0,tmp.lastIndexOf("("))
+            if (annotations.isEmpty || annotations.exists(ann => ann.getName ==annotationName)) {
               val value = annotation.tree.children.tail.map(_.productElement(0).asInstanceOf[Constant].value)
               val typeAnnotation = annotation.tree.tpe
               val res = rm.reflectClass(typeAnnotation.typeSymbol.asClass).
                 reflectConstructor(typeAnnotation.decl(termNames.CONSTRUCTOR).asMethod)(value: _*)
-              container += AnnotationInfo(res, m.name.toString.trim)
+              container += FieldAnnotationInfo(res, m.name.toString.trim)
             }
         }
     }
@@ -114,6 +116,48 @@ object BeanHelper {
           findFieldAnnotations(container, c, annotations)
         }
     }
+  }
+
+  /**
+   * 递归获取带指定注解的方法
+   * @param beanClazz 目标Bean
+   * @param annotations 指定的注解，为空时获取所有注解
+   * @return 注解信息（注解名称及对应的方法）
+   **/
+  def findMethodAnnotations(beanClazz: Class[_], annotations: Seq[Class[_ <: StaticAnnotation]] = Seq()): ArrayBuffer[methodAnnotationInfo] = {
+    val result = ArrayBuffer[methodAnnotationInfo]()
+    findMethodAnnotations(result, beanClazz, annotations)
+    result
+  }
+
+  @tailrec
+  private def findMethodAnnotations(container: ArrayBuffer[methodAnnotationInfo], beanClazz: Class[_], annotations: Seq[Class[_ <: StaticAnnotation]]) {
+    scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.members.collect {
+      case m if m.isMethod =>
+        m.annotations.map {
+          annotation =>
+            val tmp=annotation.toString
+            val annotationName=if(tmp.indexOf("(")== -1) tmp else tmp.substring(0,tmp.lastIndexOf("("))
+            if (annotations.isEmpty || annotations.exists(ann => ann.getName ==annotationName)) {
+              val value = annotation.tree.children.tail.map(_.productElement(0).asInstanceOf[Constant].value)
+              val typeAnnotation = annotation.tree.tpe
+              val res = rm.reflectClass(typeAnnotation.typeSymbol.asClass).
+                reflectConstructor(typeAnnotation.decl(termNames.CONSTRUCTOR).asMethod)(value: _*)
+              container += methodAnnotationInfo(res, m.name.toString.trim)
+            }
+        }
+    }
+    beanClazz.getGenericSuperclass match {
+      case c: Class[_] =>
+        if (c != classOf[Object]) {
+          findMethodAnnotations(container, c, annotations)
+        }
+    }
+  }
+
+  def invoke(obj: Any, method: String): MethodMirror = {
+    val ref=rm.reflect(obj)
+    ref.reflectMethod(ref.symbol.typeSignature.member(TermName(method)).asMethod)
   }
 
   /**
@@ -148,7 +192,6 @@ object BeanHelper {
     }
     res
   }
-
 }
 
 private class NullAwareBeanUtilsBean extends BeanUtilsBean {
@@ -159,7 +202,9 @@ private class NullAwareBeanUtilsBean extends BeanUtilsBean {
   }
 }
 
-case class AnnotationInfo(annotation: Any, fieldName: String)
+case class FieldAnnotationInfo(annotation: Any, fieldName: String)
+
+case class methodAnnotationInfo(annotation: Any, method: String)
 
 @scala.annotation.meta.field
 class Ignore extends scala.annotation.StaticAnnotation
