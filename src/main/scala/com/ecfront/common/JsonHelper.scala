@@ -45,6 +45,20 @@ object JsonHelper {
         clazz match {
           case c if c == classOf[String] =>
             o.asInstanceOf[E]
+          case c if c == classOf[Int] =>
+            o.toInt.asInstanceOf[E]
+          case c if c == classOf[Long] =>
+            o.toLong.asInstanceOf[E]
+          case c if c == classOf[Double] =>
+            o.toDouble.asInstanceOf[E]
+          case c if c == classOf[Float] =>
+            o.toFloat.asInstanceOf[E]
+          case c if c == classOf[Boolean] =>
+            o.toBoolean.asInstanceOf[E]
+          case c if c == classOf[Byte] =>
+            o.toByte.asInstanceOf[E]
+          case c if c == classOf[Short] =>
+            o.toShort.asInstanceOf[E]
           case c if c == classOf[Void] =>
             null.asInstanceOf[E]
           case _ =>
