@@ -25,7 +25,7 @@ object ConfigHelper extends LazyLogging {
   def init[E]( configPath: String,configClazz: Class[E] = classOf[JsonNode]): Option[E] = {
     val realConfigPath = if (System.getProperties.containsKey(SYS_PROP_CONFIG)) System.getProperty(SYS_PROP_CONFIG) else configPath
     if (new File(realConfigPath).exists()) {
-      val configStr = Source.fromFile(realConfigPath).mkString
+      val configStr = Source.fromFile(realConfigPath,"UTF-8").mkString
       val config = if (configClazz.isInstance(classOf[JsonNode])) JsonHelper.toJson(configStr) else JsonHelper.toObject(configStr, configClazz)
       if (config == null) {
         logger.error("The Config [" + realConfigPath + "] parse error!")
