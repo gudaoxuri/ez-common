@@ -22,10 +22,25 @@ object ConfigHelper extends LazyLogging {
    * @tparam E  要转换成的对象类型
    * @return 配置文件对象
    */
-  def init[E]( configPath: String,configClazz: Class[E] = classOf[JsonNode]): Option[E] = {
+  def initFromURL[E](configPath: java.net.URL, configClazz: Class[E] = classOf[JsonNode]): Option[E] = {
+    if (configPath != null) {
+      init(configPath.getPath, configClazz)
+    } else {
+      init("", configClazz)
+    }
+  }
+
+  /**
+   * 获取属性文件
+   * @param configPath  配置文件全路径
+   * @param configClazz 要转换成的对象类型，默认为JsonNode
+   * @tparam E  要转换成的对象类型
+   * @return 配置文件对象
+   */
+  def init[E](configPath: String, configClazz: Class[E] = classOf[JsonNode]): Option[E] = {
     val realConfigPath = if (System.getProperties.containsKey(SYS_PROP_CONFIG)) System.getProperty(SYS_PROP_CONFIG) else configPath
     if (new File(realConfigPath).exists()) {
-      val configStr = Source.fromFile(realConfigPath,"UTF-8").mkString
+      val configStr = Source.fromFile(realConfigPath, "UTF-8").mkString
       val config = if (configClazz.isInstance(classOf[JsonNode])) JsonHelper.toJson(configStr) else JsonHelper.toObject(configStr, configClazz)
       if (config == null) {
         logger.error("The Config [" + realConfigPath + "] parse error!")
