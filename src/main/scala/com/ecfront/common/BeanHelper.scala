@@ -115,6 +115,7 @@ object BeanHelper {
         if (c != classOf[Object]) {
           findFieldAnnotations(container, c, annotations)
         }
+      case _ =>
     }
   }
 
@@ -153,6 +154,7 @@ object BeanHelper {
         if (c != classOf[Object]) {
           findMethodAnnotations(container, c, annotations)
         }
+      case _ =>
     }
   }
 
@@ -188,6 +190,7 @@ object BeanHelper {
           if (c != classOf[Object]) {
             res = getClassAnnotation(typeAnnotation, c)
           }
+        case _ =>
       }
     }
     res
