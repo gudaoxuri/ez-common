@@ -9,13 +9,14 @@ EZ Common
 1. Scala反射操作（BeanHelper）
 1. Shell脚本操作（ShellHelper）
 1. 加密（EncryptHelper）
+1. 请求响应模型（ReqRespVO）
 
 ##使用
 
     <dependency>
         <groupId>com.ecfront</groupId>
         <artifactId>ez-common</artifactId>
-        <version>0.4.0</version>
+        <version>0.4.1</version>
     </dependency>
 
 
