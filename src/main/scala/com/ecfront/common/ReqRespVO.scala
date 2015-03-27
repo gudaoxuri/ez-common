@@ -3,14 +3,25 @@ package com.ecfront.common
 import com.typesafe.scalalogging.slf4j.LazyLogging
 
 /**
+ * Simple Request VO
+ * @param cId  Current Request ID
+ * @param accountId Request Account ID
+ */
+case class SReq(cId: String,var accountId: String)
+
+object SReq {
+
+  val CID = "cid"
+  val ACCOUNT_ID = "accountId"
+
+}
+
+/**
  * Request VO
  * @param cId  Current Request ID
  * @param accountId Request Account ID
  */
-case class Req[E](
-                   cId: String,
-                   var accountId: String
-                   ) {
+case class Req[E](cId: String,var accountId: String) {
   var action: String = _
   var parameters: Map[String, Any] = _
   var body: E = _
