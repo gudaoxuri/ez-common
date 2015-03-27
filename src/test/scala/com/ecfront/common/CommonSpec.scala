@@ -32,7 +32,7 @@ class CommonSpec extends FunSuite {
     assert(fields("name") == "String")
     assert(fields("bool") == "Boolean")
 
-    val model = TestModel("张三", true, 14)
+    val model = TestModel("张三", bool = true, 14)
     model.id = "id001"
     val values = BeanHelper.findValues(model)
     assert(values.size == 6)
@@ -50,21 +50,28 @@ class CommonSpec extends FunSuite {
 
     val fieldAnnotations = BeanHelper.findFieldAnnotations(classOf[TestModel])
     assert(fieldAnnotations.size == 6)
-    assert(fieldAnnotations(0).annotation.isInstanceOf[ManyToMany])
-    assert(fieldAnnotations(0).annotation.asInstanceOf[ManyToMany].master)
-    assert(!fieldAnnotations(0).annotation.asInstanceOf[ManyToMany].fetch)
-    assert(fieldAnnotations(0).fieldName == "relA")
+    assert(fieldAnnotations.head.annotation.isInstanceOf[ManyToMany])
+    assert(fieldAnnotations.head.annotation.asInstanceOf[ManyToMany].master)
+    assert(!fieldAnnotations.head.annotation.asInstanceOf[ManyToMany].fetch)
+    assert(fieldAnnotations.head.fieldName == "relA")
 
+    val methodObjectAnnotations = BeanHelper.findMethodAnnotations(Test2Model.getClass)
+    assert(methodObjectAnnotations.size == 1)
 
-    val methodAnnotations = BeanHelper.findMethodAnnotations(classOf[TestModel], Seq(classOf[Get]))
-    assert(BeanHelper.invoke(model, methodAnnotations(0).method)(10, 2) == 5)
+    val methodAnnotations = BeanHelper.findMethodAnnotations(TestModel.getClass, Seq(classOf[Get]))
+    assert(BeanHelper.invoke(model, methodAnnotations.head.method)(10, 2) == 5)
     assert(BeanHelper.invoke(model, methodAnnotations(1).method)(10, 2) == 20)
   }
 
   test("加密测试") {
-    assert(EncryptHelper.encrypt("gudaoxuri") == "70C0CC2B7BF8A8EBCD7B59C49DDDA9A1E551122BA5D7AB3B7B02141D4CE4C626".toLowerCase())
+    assert(EncryptHelper.encrypt("gudaoxuri") == "70C0CC2B7BF8A8EBCD7B59C49DDDA9A1E551122BA5D7AB3B7B02141D4CE4C626".toLowerCase)
   }
 
+}
+
+object Test2Model {
+  @Get(url = "/multiply/")
+  def multiply(x: Int, y: Int) = x * y
 }
 
 case class TestModel(

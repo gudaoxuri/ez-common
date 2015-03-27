@@ -120,7 +120,7 @@ object BeanHelper {
   }
 
   /**
-   * 递归获取带指定注解的方法
+   * 递归获取带指定注解的方法，当beanClazz 为object 时务必使用 getClass 获取
    * @param beanClazz 目标Bean
    * @param annotations 指定的注解，为空时获取所有注解
    * @return 注解信息（注解名称及对应的方法）
@@ -139,6 +139,7 @@ object BeanHelper {
         m.annotations.map {
           annotation =>
             val tmp = annotation.toString
+            if(!tmp.startsWith("throws[java.")){
             val annotationName = if (tmp.indexOf("(") == -1) tmp else tmp.substring(0, tmp.lastIndexOf("("))
             if (annotations.isEmpty || annotations.exists(ann => ann.getName == annotationName)) {
               val value = annotation.tree.children.tail.map(_.productElement(0).asInstanceOf[Constant].value)
@@ -146,6 +147,7 @@ object BeanHelper {
               val res = rm.reflectClass(typeAnnotation.typeSymbol.asClass).
                 reflectConstructor(typeAnnotation.decl(termNames.CONSTRUCTOR).asMethod)(value: _*)
               container += methodAnnotationInfo(res, tf.member(TermName(m.name.toString.trim)).asMethod)
+            }
             }
         }
     }
