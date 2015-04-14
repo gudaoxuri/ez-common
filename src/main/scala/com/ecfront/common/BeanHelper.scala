@@ -175,7 +175,7 @@ object BeanHelper {
     if (res != None) {
       Some(res.get.asInstanceOf[A])
     } else {
-      null
+      None
     }
   }
 
