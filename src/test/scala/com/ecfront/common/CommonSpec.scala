@@ -58,7 +58,7 @@ class CommonSpec extends FunSuite {
     val methodObjectAnnotations = BeanHelper.findMethodAnnotations(Test2Model.getClass)
     assert(methodObjectAnnotations.size == 1)
 
-    val methodAnnotations = BeanHelper.findMethodAnnotations(TestModel.getClass, Seq(classOf[Get]))
+    val methodAnnotations = BeanHelper.findMethodAnnotations(classOf[TestModel], Seq(classOf[Get]))
     assert(BeanHelper.invoke(model, methodAnnotations.head.method)(10, 2) == 5)
     assert(BeanHelper.invoke(model, methodAnnotations(1).method)(10, 2) == 20)
   }

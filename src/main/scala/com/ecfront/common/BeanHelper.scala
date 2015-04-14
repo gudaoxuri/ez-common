@@ -172,7 +172,7 @@ object BeanHelper {
    */
   def getClassAnnotation[A: TypeTag](beanClazz: Class[_]): Option[A] = {
     val res = getClassAnnotation(typeOf[A], beanClazz)
-    if (res != null) {
+    if (res != None) {
       Some(res.get.asInstanceOf[A])
     } else {
       null
