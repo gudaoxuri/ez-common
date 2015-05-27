@@ -17,14 +17,6 @@ class CommonSpec extends FunSuite {
     assert(value3.loglevel == "INFO")
   }
 
-  test("Json测试") {
-    JsonHelper.toJson(Config("aaa"))
-    JsonHelper.toJson( """{"a_key":"a_val"}""")
-    JsonHelper.toJson( """{"a_key":"a_val"}""")
-    print(JsonHelper.toJsonString(JsonHelper.createObjectNode().set("", JsonHelper.createObjectNode().put("a_key", "a_val"))))
-    assert(JsonHelper.toObject("1", classOf[Int]) == 1)
-  }
-
   test("Bean测试") {
     val fields = BeanHelper.findFields(classOf[TestModel])
     assert(fields.size == 4)

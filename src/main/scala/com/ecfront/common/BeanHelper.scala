@@ -172,7 +172,7 @@ object BeanHelper {
    */
   def getClassAnnotation[A: TypeTag](beanClazz: Class[_]): Option[A] = {
     val res = getClassAnnotation(typeOf[A], beanClazz)
-    if (res != None) {
+    if (res.isDefined) {
       Some(res.get.asInstanceOf[A])
     } else {
       None
@@ -186,7 +186,7 @@ object BeanHelper {
         rm.reflectClass(typeAnnotation.typeSymbol.asClass).
           reflectConstructor(typeAnnotation.decl(termNames.CONSTRUCTOR).asMethod)(value: _*)
     }
-    if (res == None) {
+    if (res.isEmpty) {
       beanClazz.getGenericSuperclass match {
         case c: Class[_] =>
           if (c != classOf[Object]) {

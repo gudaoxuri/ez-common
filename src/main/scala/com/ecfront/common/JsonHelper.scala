@@ -1,8 +1,10 @@
 package com.ecfront.common
 
+import com.fasterxml.jackson.core.`type`.TypeReference
 import com.fasterxml.jackson.databind.node.{ArrayNode, ObjectNode}
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
 
 /**
  * Scala版本的Json辅助类<br/>
@@ -10,7 +12,7 @@ import com.fasterxml.jackson.module.scala.DefaultScalaModule
  */
 object JsonHelper {
 
-  private val mapper = new ObjectMapper()
+  private val mapper = new ObjectMapper() with ScalaObjectMapper
   mapper.registerModule(DefaultScalaModule)
 
   /**
@@ -69,6 +71,17 @@ object JsonHelper {
     }
   }
 
+  /**
+   * json或string 转 generic object
+   */
+  def toGenericObject[E](obj: Any, genericObj: TypeReference[E]): E = {
+    obj match {
+      case o: String => mapper.readValue(o, genericObj)
+      case o: JsonNode => mapper.readValue(o.toString, genericObj)
+      case _ => mapper.readValue(mapper.writeValueAsString(obj), genericObj)
+    }
+  }
+
   def createObjectNode(): ObjectNode = {
     mapper.createObjectNode()
   }
@@ -78,3 +91,5 @@ object JsonHelper {
   }
 
 }
+
+
