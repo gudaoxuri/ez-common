@@ -1,6 +1,6 @@
 package com.ecfront.common
 
-import com.fasterxml.jackson.core.`type`.TypeReference
+import com.fasterxml.jackson.core.`type`.STypeReference
 import com.fasterxml.jackson.databind.node.{ArrayNode, ObjectNode}
 import com.fasterxml.jackson.databind.{JsonNode, ObjectMapper}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
@@ -74,11 +74,11 @@ object JsonHelper {
   /**
    * json或string 转 generic object
    */
-  def toGenericObject[E](obj: Any, genericObj: TypeReference[E]): E = {
+  def toGenericObject[E : Manifest](obj: Any): E = {
     obj match {
-      case o: String => mapper.readValue(o, genericObj)
-      case o: JsonNode => mapper.readValue(o.toString, genericObj)
-      case _ => mapper.readValue(mapper.writeValueAsString(obj), genericObj)
+      case o: String => mapper.readValue[E](o)
+      case o: JsonNode => mapper.readValue[E](o.toString)
+      case _ => mapper.readValue[E](mapper.writeValueAsString(obj))
     }
   }
 
@@ -88,6 +88,10 @@ object JsonHelper {
 
   def createArrayNode(): ArrayNode = {
     mapper.createArrayNode()
+  }
+
+  def getMapper: ObjectMapper ={
+    mapper
   }
 
 }
