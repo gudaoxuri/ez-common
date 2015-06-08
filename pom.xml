@@ -10,7 +10,6 @@
         <version>0.1.1</version>
     </parent>
 
-    <groupId>com.ecfront</groupId>
     <artifactId>ez-common</artifactId>
     <name>EZ Common</name>
     <description>公共模块</description>
