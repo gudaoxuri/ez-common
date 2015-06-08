@@ -63,6 +63,7 @@ case class TestModel(
   def multiply(x: Int, y: Int) = x * y
 
   @Get(url = "/divide/")
+  @Ignore
   def divide(x: Int, y: Int) = x / y
 }
 

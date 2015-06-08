@@ -6,7 +6,8 @@ EZ Common
 
 1. 配置文件读取并转Scala对象（ConfigHelper）
 1. Json与Scala对象转换（JsonHelper）
-1. Scala反射操作（BeanHelper）
+1. Scala Bean操作（BeanHelper）
+1. Scala Class扫描操作（ClassScanHelper）
 1. Shell脚本操作（ShellHelper）
 1. 加密（EncryptHelper）
 1. 请求响应模型（ReqRespVO）
@@ -16,7 +17,7 @@ EZ Common
     <dependency>
         <groupId>com.ecfront</groupId>
         <artifactId>ez-common</artifactId>
-        <version>0.4.5</version>
+        <version>0.4.8</version>
     </dependency>
 
 

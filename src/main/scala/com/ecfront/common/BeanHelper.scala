@@ -144,9 +144,9 @@ object BeanHelper {
             if (annotations.isEmpty || annotations.exists(ann => ann.getName == annotationName)) {
               val value = annotation.tree.children.tail.map(_.productElement(0).asInstanceOf[Constant].value)
               val typeAnnotation = annotation.tree.tpe
-              val res = rm.reflectClass(typeAnnotation.typeSymbol.asClass).
+              val ann = rm.reflectClass(typeAnnotation.typeSymbol.asClass).
                 reflectConstructor(typeAnnotation.decl(termNames.CONSTRUCTOR).asMethod)(value: _*)
-              container += methodAnnotationInfo(res, tf.member(TermName(m.name.toString.trim)).asMethod)
+              container += methodAnnotationInfo(ann, tf.member(TermName(m.name.toString.trim)).asMethod)
             }
             }
         }
