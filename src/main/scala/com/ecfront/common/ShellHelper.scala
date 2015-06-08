@@ -27,7 +27,7 @@ case class ShellHelper(command: String, reportHandler: ReportHandler = null, tas
           val res2 = outputFuture.get
           if (reportHandler != null) {
             //删除最后一行（\r\n）
-            reportHandler.complete(taskId, if (result.length > 0) result.substring(0, result.length - 2) else result.toString())
+            reportHandler.complete(taskId, if (result.length > 0) result.substring(0, result.length - 2) else result.toString)
           }
           logger.debug("Execute Complete: " + command)
           if (!res1 && !res2) {

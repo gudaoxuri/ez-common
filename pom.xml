@@ -7,7 +7,7 @@
     <parent>
         <groupId>com.ecfront</groupId>
         <artifactId>ez-parent</artifactId>
-        <version>0.1</version>
+        <version>0.1.1</version>
     </parent>
 
     <groupId>com.ecfront</groupId>
@@ -23,5 +23,29 @@
         <developerConnection>scm:git:git@github.com:gudaoxuri/ez-common.git</developerConnection>
         <url>git@github.com:gudaoxuri/ez-common.git</url>
     </scm>
+
+    <properties>
+        <json.version>2.5.2</json.version>
+        <beanutils.version>1.9.2</beanutils.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.fasterxml.jackson.module</groupId>
+            <artifactId>jackson-module-scala_2.11</artifactId>
+            <version>${json.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.scala-lang</groupId>
+                    <artifactId>scala-library</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>${beanutils.version}</version>
+        </dependency>
+    </dependencies>
 
 </project>

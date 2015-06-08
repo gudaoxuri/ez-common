@@ -1,21 +1,11 @@
 package com.ecfront.common
 
-import com.fasterxml.jackson.databind.JsonNode
 import org.scalatest._
 
 import scala.annotation.StaticAnnotation
 import scala.beans.BeanProperty
 
-class CommonSpec extends FunSuite {
-
-  test("配置测试") {
-    val value1 = ConfigHelper.init[JsonNode](this.getClass.getResource("/config.json").getPath).get.path("loglevel").asText()
-    assert(value1 == "DEBUG")
-    val value2 = ConfigHelper.init[Config](this.getClass.getResource("/config.json").getPath, classOf[Config]).get
-    assert(value2.loglevel == "DEBUG")
-    val value3 = ConfigHelper.init[Config](getClass.getResource("/").getPath + "config2.json", classOf[Config]).get
-    assert(value3.loglevel == "INFO")
-  }
+class BeanHelperSpec extends FunSuite {
 
   test("Bean测试") {
     val fields = BeanHelper.findFields(classOf[TestModel])
@@ -55,10 +45,6 @@ class CommonSpec extends FunSuite {
     assert(BeanHelper.invoke(model, methodAnnotations(1).method)(10, 2) == 20)
   }
 
-  test("加密测试") {
-    assert(EncryptHelper.encrypt("gudaoxuri") == "70C0CC2B7BF8A8EBCD7B59C49DDDA9A1E551122BA5D7AB3B7B02141D4CE4C626".toLowerCase)
-  }
-
 }
 
 object Test2Model {
@@ -87,9 +73,6 @@ abstract class IdModel {
   @BeanProperty var id: String = _
   @Ignore var title: String = _
 }
-
-
-case class Config(loglevel: String)
 
 case class Entity(idField: String) extends StaticAnnotation
 

@@ -1,10 +1,8 @@
 package com.ecfront.common
 
-import com.fasterxml.jackson.core.`type`.STypeReference
 import org.scalatest.FunSuite
 
 import scala.beans.BeanProperty
-import collection.JavaConversions._
 
 class JsonHelperSpec extends FunSuite {
 
@@ -15,11 +13,12 @@ class JsonHelperSpec extends FunSuite {
     JsonHelper.toJson( """{"a_key":"a_val"}""")
     print(JsonHelper.toJsonString(JsonHelper.createObjectNode().set("", JsonHelper.createObjectNode().put("a_key", "a_val"))))
     assert(JsonHelper.toObject("1", classOf[Int]) == 1)
-
+    assert(JsonHelper.toObject("""{"name":"sunisle","createTime":123456789,"cid":"1"}""", classOf[TestIdModel]).name=="sunisle")
     val result = JsonHelper.toGenericObject[List[TestIdModel]]( """[{"name":"sunisle","createTime":123456789,"cid":"1"}]""")
     assert(result.head.cid == "1")
     assert(result.head.createTime == 123456789)
     assert(result.head.name == "sunisle")
+
   }
 
   /*test("Generic Test") {
