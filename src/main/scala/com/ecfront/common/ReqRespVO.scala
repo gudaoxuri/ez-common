@@ -7,33 +7,23 @@ import com.typesafe.scalalogging.slf4j.LazyLogging
  * @param cId  Current Request ID
  * @param accountId Request Account ID
  */
-case class SReq(cId: String,var accountId: String)
-
-object SReq {
-
-  val CID = "cid"
-  val ACCOUNT_ID = "accountId"
-
-}
+case class SReq(override val cId: String, override val accountId: String) extends Req(cId, accountId, null, null)
 
 /**
  * Request VO
  * @param cId  Current Request ID
  * @param accountId Request Account ID
  */
-case class Req[E](cId: String,var accountId: String) {
-  var action: String = _
-  var parameters: Map[String, Any] = _
-  var body: E = _
-}
+class Req(val cId: String, val accountId: String, val action: String, val parameters: Map[String, Any])
 
 object Req {
-
   val CID = "cid"
   val ACCOUNT_ID = "accountId"
   val ACTION = "action"
   val PARAMETERS = "parameters"
-  val BODy = "body"
+
+  def apply(cId: String, accountId: String, action: String, parameters: Map[String, Any]) = new Req(cId, accountId, action, parameters)
+
 }
 
 /**
