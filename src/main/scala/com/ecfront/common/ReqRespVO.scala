@@ -9,20 +9,21 @@ import com.typesafe.scalalogging.slf4j.LazyLogging
  */
 case class SReq(override val cId: String, override val accountId: String) extends Req(cId, accountId, null, null)
 
+
 /**
  * Request VO
  * @param cId  Current Request ID
  * @param accountId Request Account ID
  */
-class Req(val cId: String, val accountId: String, val action: String, val parameters: Map[String, Any])
+class Req(val cId: String, val accountId: String, val method: String, val uri: String)
 
 object Req {
   val CID = "cid"
   val ACCOUNT_ID = "accountId"
-  val ACTION = "action"
-  val PARAMETERS = "parameters"
+  val METHOD = "method"
+  val URI = "uri"
 
-  def apply(cId: String, accountId: String, action: String, parameters: Map[String, Any]) = new Req(cId, accountId, action, parameters)
+  def apply(cId: String, accountId: String, method: String, uri: String) = new Req(cId, accountId, method, uri)
 
 }
 
