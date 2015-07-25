@@ -45,6 +45,31 @@ class BeanHelperSpec extends FunSuite {
     assert(BeanHelper.invoke(model, methodAnnotations(1).method)(10, 2) == 20)
   }
 
+  test("Bean copy测试") {
+    val model1 = Some_Model()
+    model1.name = "0"
+    model1.only_model = "m"
+    val vo1 = Some_VO()
+    BeanHelper.copyProperties(vo1, model1)
+    assert(vo1.name == "0")
+    val vo2 = Some_VO()
+    vo2.name = "0"
+    vo2.only_vo = "v"
+    val model2 = Some_Model()
+    BeanHelper.copyProperties(model2, vo2)
+    assert(model2.name == "0")
+  }
+
+}
+
+case class Some_Model() {
+  @BeanProperty var name: String = _
+  @BeanProperty var only_model: String = _
+}
+
+case class Some_VO() {
+  @BeanProperty var name: String = _
+  @BeanProperty var only_vo: String = _
 }
 
 object Test2Model {
