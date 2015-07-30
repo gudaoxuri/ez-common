@@ -85,9 +85,9 @@ object Resp extends LazyLogging {
     Resp[E](StandardCode.SERVICE_UNAVAILABLE, message, null)
   }
 
-  def fail[M](code: String, message: String) = {
-    logger.error("[Result] [%s] fail: %s".format( code, message))
-    Resp[M](code, message, null)
+  def unknown[M](message: String) = {
+    logger.error("[Result] [%s] unknown fail: %s".format(StandardCode.UNKNOWN, message))
+    Resp[M](StandardCode.UNKNOWN, message, null)
   }
 
   def customFail[M](code: String, message: String) = {
@@ -113,4 +113,5 @@ object StandardCode extends Enumeration {
   val INTERNAL_SERVER_ERROR = Value("500").toString
   val NOT_IMPLEMENTED = Value("501").toString
   val SERVICE_UNAVAILABLE = Value("503").toString
+  val UNKNOWN = Value("-1").toString
 }
