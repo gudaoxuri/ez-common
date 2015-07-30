@@ -42,6 +42,7 @@ object Resp extends LazyLogging {
   val CODE = "code"
   val BODY = "body"
   val MESSAGE = "message"
+  val CUSTOM_CODE_PREFIX = "custom-"
 
   def success[M](body: M) = {
     val res = Resp[M](StandardCode.SUCCESS, "", Some(body))
@@ -84,12 +85,14 @@ object Resp extends LazyLogging {
     Resp[E](StandardCode.SERVICE_UNAVAILABLE, message, null)
   }
 
-  def fail[M](code: String, message: String) = {
-    logger.error("[Result] [%s] Custom fail: %s".format(code, message))
-    Resp[M](code, message, null)
+  def customFail[M](code: String, message: String) = {
+    logger.error("[Result] [%s] Custom fail: %s".format(CUSTOM_CODE_PREFIX + code, message))
+    Resp[M](CUSTOM_CODE_PREFIX + code, message, null)
   }
 
   implicit def isSuccess[M](dto: Resp[M]): Boolean = StandardCode.SUCCESS == dto.code
+
+  implicit def convertFail[M](dto: Resp[_]): Resp[M] = Resp[M](dto.code, dto.message, null)
 
 }
 
