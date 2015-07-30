@@ -85,6 +85,11 @@ object Resp extends LazyLogging {
     Resp[E](StandardCode.SERVICE_UNAVAILABLE, message, null)
   }
 
+  def fail[M](code: String, message: String) = {
+    logger.error("[Result] [%s] fail: %s".format( code, message))
+    Resp[M](code, message, null)
+  }
+
   def customFail[M](code: String, message: String) = {
     logger.error("[Result] [%s] Custom fail: %s".format(CUSTOM_CODE_PREFIX + code, message))
     Resp[M](CUSTOM_CODE_PREFIX + code, message, null)
