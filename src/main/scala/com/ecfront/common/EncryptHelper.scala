@@ -21,4 +21,11 @@ object EncryptHelper extends LazyLogging {
       Character.forDigit(b & 0x0f, 16))
   }
 
+  def bytes2hex(bytes: Array[Byte], sep: Option[String] = None): String = {
+    sep match {
+      case None => bytes.map("%02x".format(_)).mkString
+      case _ => bytes.map("%02x".format(_)).mkString(sep.get)
+    }
+  }
+
 }

@@ -1,7 +1,5 @@
 package com.ecfront.common
 
-import com.fasterxml.jackson.core.`type`.STypeReference
-import com.fasterxml.jackson.databind.`type`.TypeFactory
 import org.scalatest.FunSuite
 
 import scala.beans.BeanProperty
@@ -15,7 +13,7 @@ class JsonHelperSpec extends FunSuite {
     JsonHelper.toJson( """{"a_key":"a_val"}""")
     print(JsonHelper.toJsonString(JsonHelper.createObjectNode().set("", JsonHelper.createObjectNode().put("a_key", "a_val"))))
     assert(JsonHelper.toObject("1", classOf[Int]) == 1)
-    assert(JsonHelper.toObject("""{"name":"sunisle","createTime":123456789,"cid":"1"}""", classOf[TestIdModel]).name=="sunisle")
+    assert(JsonHelper.toObject( """{"name":"sunisle","createTime":123456789,"cid":"1"}""", classOf[TestIdModel]).name == "sunisle")
     val result = JsonHelper.toGenericObject[List[TestIdModel]]( """[{"name":"sunisle","createTime":123456789,"cid":"1"}]""")
     assert(result.head.cid == "1")
     assert(result.head.createTime == 123456789)
@@ -38,12 +36,9 @@ class JsonHelperSpec extends FunSuite {
     }*/
   }
 
-  /*def save[E](objs:String,clazz: Class[E]) {
-    val aa=JsonHelper.getMapper.readValue(objs,JsonHelper.getMapper.getTypeFactory().constructCollectionLikeType(classOf[List[_]],classOf[TestIdModel]))
-    print(aa)
-  }*/
 
-  }
+}
+
 
 trait Id {
   @BeanProperty var cid: String = _
