@@ -198,7 +198,7 @@ object BeanHelper {
     res
   }
 
-  def getClassFromMethodInfo(clazzStr: String): Class[_] = {
+  def getClassByStr(clazzStr: String): Class[_] = {
     clazzStr match {
       case "Int" => classOf[Int]
       case "String" => classOf[String]
