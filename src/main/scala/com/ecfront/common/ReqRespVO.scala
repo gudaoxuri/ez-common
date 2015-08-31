@@ -2,29 +2,18 @@ package com.ecfront.common
 
 import com.typesafe.scalalogging.slf4j.LazyLogging
 
-/**
- * Simple Request VO
- * @param cId  Current Request ID
- * @param accountId Request Account ID
- */
-case class SReq(override val cId: String, override val accountId: String) extends Req(cId, accountId, null, null)
-
+import scala.language.implicitConversions
 
 /**
  * Request VO
- * @param cId  Current Request ID
- * @param accountId Request Account ID
  */
-class Req(val cId: String, val accountId: String, val method: String, val uri: String)
+case class Req(token: String, login_Id: String, login_name: String, organization_id: String, organization_name: String, role_ids: Map[String, String])
 
 object Req {
-  val CID = "cid"
-  val ACCOUNT_ID = "accountId"
-  val METHOD = "method"
-  val URI = "uri"
-
-  def apply(cId: String, accountId: String, method: String, uri: String) = new Req(cId, accountId, method, uri)
-
+  val SYS_ADMIN_ID="0"
+  val ANONYMOUS_ID="-1"
+  val sysReq = Req("",SYS_ADMIN_ID, "system", "", "", null)
+  val anonymousReq = Req("",ANONYMOUS_ID,"anonymous", "", "", null)
 }
 
 /**
