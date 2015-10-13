@@ -17,9 +17,8 @@ EZ Common
     <dependency>
         <groupId>com.ecfront</groupId>
         <artifactId>ez-common</artifactId>
-        <version>0.5.3</version>
+        <version>0.5.4</version>
     </dependency>
-
 
 ### Check out sources
 `git clone https://github.com/gudaoxuri/ez-common.git`
