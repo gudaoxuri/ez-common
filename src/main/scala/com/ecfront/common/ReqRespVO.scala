@@ -2,6 +2,7 @@ package com.ecfront.common
 
 import com.typesafe.scalalogging.slf4j.LazyLogging
 
+import scala.concurrent.Promise
 import scala.language.implicitConversions
 
 /**
@@ -22,8 +23,8 @@ object Req {
  * @param message  Description
  * @param _body Response main info
  */
-case class Resp[M](code: String, message: String, private val _body: Option[M]) {
-  var body: M = _
+case class Resp[E](code: String, message: String, private val _body: Option[E]) {
+  var body: E = _
 }
 
 object Resp extends LazyLogging {
@@ -33,8 +34,8 @@ object Resp extends LazyLogging {
   val MESSAGE = "message"
   val CUSTOM_CODE_PREFIX = "custom-"
 
-  def success[M](body: M) = {
-    val res = Resp[M](StandardCode.SUCCESS, "", Some(body))
+  def success[E](body: E) = {
+    val res = Resp[E](StandardCode.SUCCESS, "", Some(body))
     res.body = body
     res
   }
@@ -74,19 +75,71 @@ object Resp extends LazyLogging {
     Resp[E](StandardCode.SERVICE_UNAVAILABLE, message, null)
   }
 
-  def unknown[M](message: String) = {
+  def unknown[E](message: String) = {
     logger.error("[Result] [%s] unknown fail: %s".format(StandardCode.UNKNOWN, message))
-    Resp[M](StandardCode.UNKNOWN, message, null)
+    Resp[E](StandardCode.UNKNOWN, message, null)
   }
 
-  def customFail[M](code: String, message: String) = {
+  def customFail[E](code: String, message: String) = {
     logger.error("[Result] [%s] Custom fail: %s".format(CUSTOM_CODE_PREFIX + code, message))
-    Resp[M](CUSTOM_CODE_PREFIX + code, message, null)
+    Resp[E](CUSTOM_CODE_PREFIX + code, message, null)
   }
 
-  implicit def isSuccess[M](dto: Resp[M]): Boolean = StandardCode.SUCCESS == dto.code
+  implicit def isSuccess[E](dto: Resp[E]): Boolean = StandardCode.SUCCESS == dto.code
 
-  implicit def convertFail[M](dto: Resp[_]): Resp[M] = Resp[M](dto.code, dto.message, null)
+  implicit def convertFail[E](dto: Resp[_]): Resp[E] = Resp[E](dto.code, dto.message, null)
+
+}
+
+/**
+  * Async responseVO
+  * @param p Promise
+  */
+case class AsyncResp[E](p: Promise[Resp[E]]) extends LazyLogging {
+
+  def resp(dto:Resp[_])={
+    p.success(dto)
+  }
+
+  def success(body: E) = {
+    p.success(Resp.success[E](body))
+  }
+
+  def notFound(message: String) = {
+    p.success(Resp.notFound(message))
+  }
+
+  def badRequest(message: String) = {
+    p.success(Resp.badRequest(message))
+  }
+
+  def forbidden(message: String) = {
+    p.success(Resp.forbidden(message))
+  }
+
+  def unAuthorized(message: String) = {
+    p.success(Resp.unAuthorized(message))
+  }
+
+  def serverError(message: String) = {
+    p.success(Resp.serverError(message))
+  }
+
+  def notImplemented(message: String) = {
+    p.success(Resp.notImplemented(message))
+  }
+
+  def serverUnavailable(message: String) = {
+    p.success(Resp.serverUnavailable(message))
+  }
+
+  def unknown(message: String) = {
+    p.success(Resp.unknown(message))
+  }
+
+  def customFail(code: String, message: String) = {
+    p.success(Resp.customFail(code, message))
+  }
 
 }
 

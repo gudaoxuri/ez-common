@@ -15,7 +15,7 @@
     <description>公共模块</description>
     <url>https://github.com/gudaoxuri/ez-common</url>
     <packaging>jar</packaging>
-    <version>0.5.4</version>
+    <version>0.5.5</version>
 
     <scm>
         <connection>scm:git:git@github.com:gudaoxuri/ez-common.git</connection>
@@ -24,7 +24,7 @@
     </scm>
 
     <properties>
-        <json.version>2.6.1</json.version>
+        <json.version>2.6.3</json.version>
         <beanutils.version>1.9.2</beanutils.version>
     </properties>
 
