@@ -6,23 +6,23 @@ import scala.concurrent.Promise
 import scala.language.implicitConversions
 
 /**
- * Request VO
- */
+  * Request VO
+  */
 case class Req(token: String, login_Id: String, login_name: String, organization_id: String, organization_name: String, role_ids: Map[String, String])
 
 object Req {
-  val SYS_ADMIN_ID="0"
-  val ANONYMOUS_ID="-1"
-  val sysReq = Req("",SYS_ADMIN_ID, "system", "", "", null)
-  val anonymousReq = Req("",ANONYMOUS_ID,"anonymous", "", "", null)
+  val SYS_ADMIN_ID = "0"
+  val ANONYMOUS_ID = "-1"
+  val sysReq = Req("", SYS_ADMIN_ID, "system", "", "", null)
+  val anonymousReq = Req("", ANONYMOUS_ID, "anonymous", "", "", null)
 }
 
 /**
- * Response VO
- * @param code Standard Code
- * @param message  Description
- * @param _body Response main info
- */
+  * Response VO
+  * @param code Standard Code
+  * @param message  Description
+  * @param _body Response main info
+  */
 case class Resp[E](code: String, message: String, private val _body: Option[E]) {
   var body: E = _
 }
@@ -97,8 +97,10 @@ object Resp extends LazyLogging {
   */
 case class AsyncResp[E](p: Promise[Resp[E]]) extends LazyLogging {
 
-  def resp(dto:Resp[_])={
-    p.success(dto)
+  def resp(dto: Resp[_]) = {
+    val resp = Resp[E](dto.code, dto.message, Some(dto.body.asInstanceOf[E]))
+    resp.body = dto.body.asInstanceOf[E]
+    p.success(resp)
   }
 
   def success(body: E) = {
@@ -144,8 +146,8 @@ case class AsyncResp[E](p: Promise[Resp[E]]) extends LazyLogging {
 }
 
 /**
- * Standard Code
- */
+  * Standard Code
+  */
 object StandardCode extends Enumeration {
   val SUCCESS = Value("200").toString
   val BAD_REQUEST = Value("400").toString
