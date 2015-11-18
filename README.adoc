@@ -1,0 +1,32 @@
+= EZ Common
+
+=== EZ系列的公共模块。
+
+== 功能
+
+. 配置文件读取并转Scala对象（ConfigHelper）
+. Json与Scala对象转换（JsonHelper）
+. Scala Bean操作（BeanHelper）
+. Scala Class扫描操作（ClassScanHelper）
+. Shell脚本操作（ShellHelper）
+. 加密（EncryptHelper）
+. 请求响应模型（ReqRespVO）
+
+== 使用
+
+[source]
+----
+<dependency>
+    <groupId>com.ecfront</groupId>
+    <artifactId>ez-common</artifactId>
+    <version>0.5.7</version>
+</dependency>
+----
+
+=== Check out sources
+
+`git clone https://github.com/gudaoxuri/ez-common.git`
+
+=== License
+
+Under version 2.0 of the http://www.apache.org/licenses/LICENSE-2.0[Apache License].
