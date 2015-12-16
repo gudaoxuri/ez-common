@@ -24,7 +24,7 @@
     </scm>
 
     <properties>
-        <json.version>2.6.3</json.version>
+        <json.version>2.6.4</json.version>
         <beanutils.version>1.9.2</beanutils.version>
     </properties>
 
