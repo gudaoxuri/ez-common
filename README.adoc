@@ -19,7 +19,7 @@
 <dependency>
     <groupId>com.ecfront</groupId>
     <artifactId>ez-common</artifactId>
-    <version>0.5.7</version>
+    <version>0.5.8</version>
 </dependency>
 ----
 
