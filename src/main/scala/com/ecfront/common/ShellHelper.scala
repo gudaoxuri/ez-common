@@ -76,13 +76,13 @@ case class ShellHelper(command: String, reportHandler: ReportHandler = null, tas
           if (returnResult) {
             result.append(line + "\r\n")
           }
-          if (successFlag != null && line.toLowerCase.contains(successFlag)) {
+          if (successFlag != null && line.contains(successFlag)) {
             if (reportHandler != null) {
               reportHandler.success(taskId)
             }
             success = true
           }
-          if (progressFlag != null && reportHandler != null && line.toLowerCase.contains(progressFlag)) {
+          if (progressFlag != null && reportHandler != null && line.contains(progressFlag)) {
             reportHandler.progress(taskId, Integer.valueOf(line.substring(line.indexOf(progressFlag) + progressFlag.length).trim))
           }
           line = br.readLine
@@ -140,19 +140,19 @@ object ShellHelper {
    * @param progressFlag  进度标识，只要捕捉到此标识就更新进度， 格式为 <progressFlag>空格<progress>,如： progress 40
    * @param returnResult  是否返回结果
    */
-  def aSync(command: String, reportHandler: ReportHandler, taskId: String, successFlag: String, progressFlag: String, returnResult: Boolean): Unit = {
+  def async(command: String, reportHandler: ReportHandler, taskId: String, successFlag: String, progressFlag: String, returnResult: Boolean): Unit = {
     new ShellHelper(command, reportHandler, taskId, successFlag, progressFlag).execute(returnResult)
   }
 
-  def aSync(command: String, reportHandler: ReportHandler, taskId: String, returnResult: Boolean): Unit = {
+  def async(command: String, reportHandler: ReportHandler, taskId: String, returnResult: Boolean): Unit = {
     new ShellHelper(command, reportHandler, taskId).execute(returnResult)
   }
 
-  def aSync(command: String, reportHandler: ReportHandler, returnResult: Boolean): Unit = {
+  def async(command: String, reportHandler: ReportHandler, returnResult: Boolean): Unit = {
     new ShellHelper(command, reportHandler).execute(returnResult)
   }
 
-  def aSync(command: String): Unit = {
+  def async(command: String): Unit = {
     new ShellHelper(command).execute(rr = false)
   }
 
