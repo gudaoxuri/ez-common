@@ -16,7 +16,7 @@ case class ShellHelper(command: String, reportHandler: ReportHandler = null, tas
   def execute(rr: Boolean): Unit = {
     returnResult = rr
     try {
-      val process = Runtime.getRuntime.exec(Array[String]("/bin/sh", "-c", command))
+      val process = Runtime.getRuntime.exec(Array[String]("/bin/sh", "-c", command.replaceAll("\r\n\\s*"," ").replaceAll("\n\\s*"," ")))
       if (process != null) {
         val errorGobbler = new StreamGobbler(process.getErrorStream)
         val outputGobbler = new StreamGobbler(process.getInputStream)
