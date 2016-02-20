@@ -23,7 +23,7 @@ object Req {
   * @param message  Description
   * @param _body Response main info
   */
-case class Resp[E](code: String, message: String, private val _body: Option[E]) {
+case class Resp[E](code: String, message: String, private val _body: Option[E]=null) {
   var body: E = _
 }
 
