@@ -12,23 +12,6 @@ object AsyncHelper extends LazyLogging {
     *
     * @param fun  异步处理方法
     * @param resp 结果返回封装
-    */
-  @deprecated
-  def resp[E](fun: => Unit => E)(implicit resp: AsyncResp[E]) {
-    try {
-      resp.success(fun())
-    } catch {
-      case ex: Throwable =>
-        logger.error(s"Async process error : ${ex.getMessage}", ex)
-        resp.serverError(s"Async process error : ${ex.getMessage}")
-    }
-  }
-
-  /**
-    * 异步处理结果封装，加入异常处理
-    *
-    * @param fun  异步处理方法
-    * @param resp 结果返回封装
     *             resp({
     *             println()
     *             })
