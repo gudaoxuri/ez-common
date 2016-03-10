@@ -77,7 +77,7 @@ object JsonHelper {
   /**
     * json或string 转 generic object
     */
-  def toGenericObject[E: Manifest](obj: Any): E = {
+  def toObject[E: Manifest](obj: Any): E = {
     obj match {
       case o: String => mapper.readValue[E](o)
       case o: JsonNode => mapper.readValue[E](o.toString)
