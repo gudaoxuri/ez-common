@@ -88,8 +88,6 @@ object Resp extends LazyLogging {
 
   implicit def isSuccess[E](dto: Resp[E]): Boolean = StandardCode.SUCCESS == dto.code
 
-  implicit def convertVoid(dto: Resp[_]): Resp[Void] = Resp[Void](dto.code, dto.message, null)
-
   implicit def convertFail[E](dto: Resp[_]): Resp[E] = Resp[E](dto.code, dto.message, null)
 
 }
