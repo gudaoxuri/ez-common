@@ -19,11 +19,12 @@ object Req {
 
 /**
   * Response VO
-  * @param code Standard Code
-  * @param message  Description
-  * @param _body Response main info
+  *
+  * @param code    Standard Code
+  * @param message Description
+  * @param _body   Response main info
   */
-case class Resp[E](code: String, message: String, private val _body: Option[E]=null) {
+case class Resp[E](code: String, message: String, private val _body: Option[E] = null) {
   var body: E = _
 }
 
@@ -87,12 +88,15 @@ object Resp extends LazyLogging {
 
   implicit def isSuccess[E](dto: Resp[E]): Boolean = StandardCode.SUCCESS == dto.code
 
+  implicit def convertVoid(dto: Resp[_]): Resp[Void] = Resp[Void](dto.code, dto.message, null)
+
   implicit def convertFail[E](dto: Resp[_]): Resp[E] = Resp[E](dto.code, dto.message, null)
 
 }
 
 /**
   * Async responseVO
+  *
   * @param p Promise
   */
 case class AsyncResp[E](p: Promise[Resp[E]]) extends LazyLogging {
