@@ -42,12 +42,27 @@ object Resp extends LazyLogging {
   }
 
   def notFound[E](message: String) = {
-    logger.warn("[Result] [%s] Not found: %s".format(StandardCode.NOT_FOUND, message))
+    logger.warn("[Result] [%s] Not Found: %s".format(StandardCode.NOT_FOUND, message))
     Resp[E](StandardCode.NOT_FOUND, message, null)
   }
 
+  def conflict[E](message: String) = {
+    logger.warn("[Result] [%s] Conflict: %s".format(StandardCode.NOT_FOUND, message))
+    Resp[E](StandardCode.CONFLICT, message, null)
+  }
+
+  def locked[E](message: String) = {
+    logger.warn("[Result] [%s] Locked: %s".format(StandardCode.NOT_FOUND, message))
+    Resp[E](StandardCode.LOCKED, message, null)
+  }
+
+  def unsupportedMediaType[E](message: String) = {
+    logger.warn("[Result] [%s] Unsupported Media Type: %s".format(StandardCode.NOT_FOUND, message))
+    Resp[E](StandardCode.UNSUPPORTED_MEDIA_TYPE, message, null)
+  }
+
   def badRequest[E](message: String) = {
-    logger.warn("[Result] [%s] Bad request: %s".format(StandardCode.BAD_REQUEST, message))
+    logger.warn("[Result] [%s] Bad Request: %s".format(StandardCode.BAD_REQUEST, message))
     Resp[E](StandardCode.BAD_REQUEST, message, null)
   }
 
@@ -62,27 +77,27 @@ object Resp extends LazyLogging {
   }
 
   def serverError[E](message: String) = {
-    logger.error("[Result] [%s] Server error: %s".format(StandardCode.INTERNAL_SERVER_ERROR, message))
+    logger.error("[Result] [%s] Server Error: %s".format(StandardCode.INTERNAL_SERVER_ERROR, message))
     Resp[E](StandardCode.INTERNAL_SERVER_ERROR, message, null)
   }
 
   def notImplemented[E](message: String) = {
-    logger.error("[Result] [%s] Not implemented: %s".format(StandardCode.NOT_IMPLEMENTED, message))
+    logger.error("[Result] [%s] Not Implemented: %s".format(StandardCode.NOT_IMPLEMENTED, message))
     Resp[E](StandardCode.NOT_IMPLEMENTED, message, null)
   }
 
   def serverUnavailable[E](message: String) = {
-    logger.error("[Result] [%s] Server unavailable: %s".format(StandardCode.SERVICE_UNAVAILABLE, message))
+    logger.error("[Result] [%s] Server Unavailable: %s".format(StandardCode.SERVICE_UNAVAILABLE, message))
     Resp[E](StandardCode.SERVICE_UNAVAILABLE, message, null)
   }
 
   def unknown[E](message: String) = {
-    logger.error("[Result] [%s] unknown fail: %s".format(StandardCode.UNKNOWN, message))
+    logger.error("[Result] [%s] Unknown Fail: %s".format(StandardCode.UNKNOWN, message))
     Resp[E](StandardCode.UNKNOWN, message, null)
   }
 
   def customFail[E](code: String, message: String) = {
-    logger.error("[Result] [%s] Custom fail: %s".format(CUSTOM_CODE_PREFIX + code, message))
+    logger.error("[Result] [%s] Custom Fail: %s".format(CUSTOM_CODE_PREFIX + code, message))
     Resp[E](CUSTOM_CODE_PREFIX + code, message, null)
   }
 
@@ -111,6 +126,18 @@ case class AsyncResp[E](p: Promise[Resp[E]]) extends LazyLogging {
 
   def notFound(message: String) = {
     p.success(Resp.notFound(message))
+  }
+
+  def conflict(message: String) = {
+    p.success(Resp.conflict(message))
+  }
+
+  def locked(message: String) = {
+    p.success(Resp.locked(message))
+  }
+
+  def unsupportedMediaType(message: String) = {
+    p.success(Resp.unsupportedMediaType(message))
   }
 
   def badRequest(message: String) = {
@@ -156,6 +183,9 @@ object StandardCode extends Enumeration {
   val UNAUTHORIZED = Value("401").toString
   val FORBIDDEN = Value("403").toString
   val NOT_FOUND = Value("404").toString
+  val CONFLICT = Value("409").toString
+  val LOCKED = Value("423").toString
+  val UNSUPPORTED_MEDIA_TYPE = Value("415").toString
   val INTERNAL_SERVER_ERROR = Value("500").toString
   val NOT_IMPLEMENTED = Value("501").toString
   val SERVICE_UNAVAILABLE = Value("503").toString
