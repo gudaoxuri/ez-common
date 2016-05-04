@@ -24,11 +24,16 @@ object Req {
   * @param message Description
   * @param _body   Response main info
   */
-case class Resp[E](code: String, message: String, private val _body: Option[E] = null) {
+case class Resp[E](code: String, var message: String, private val _body: Option[E] = null) {
   var body: E = _
+
+  Resp.customInit(this)
 }
 
 object Resp extends LazyLogging {
+
+  // 自定义初始化方法
+  var customInit: Resp[_] => Unit = { resp => }
 
   val CODE = "code"
   val BODY = "body"
