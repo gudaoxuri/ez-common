@@ -47,62 +47,50 @@ object Resp extends LazyLogging {
   }
 
   def notFound[E](message: String) = {
-    logger.warn("[Result] [%s] Not Found: %s".format(StandardCode.NOT_FOUND, message))
     Resp[E](StandardCode.NOT_FOUND, message, null)
   }
 
   def conflict[E](message: String) = {
-    logger.warn("[Result] [%s] Conflict: %s".format(StandardCode.NOT_FOUND, message))
     Resp[E](StandardCode.CONFLICT, message, null)
   }
 
   def locked[E](message: String) = {
-    logger.warn("[Result] [%s] Locked: %s".format(StandardCode.NOT_FOUND, message))
     Resp[E](StandardCode.LOCKED, message, null)
   }
 
   def unsupportedMediaType[E](message: String) = {
-    logger.warn("[Result] [%s] Unsupported Media Type: %s".format(StandardCode.NOT_FOUND, message))
     Resp[E](StandardCode.UNSUPPORTED_MEDIA_TYPE, message, null)
   }
 
   def badRequest[E](message: String) = {
-    logger.warn("[Result] [%s] Bad Request: %s".format(StandardCode.BAD_REQUEST, message))
     Resp[E](StandardCode.BAD_REQUEST, message, null)
   }
 
   def forbidden[E](message: String) = {
-    logger.warn("[Result] [%s] Forbidden: %s".format(StandardCode.FORBIDDEN, message))
     Resp[E](StandardCode.FORBIDDEN, message, null)
   }
 
   def unAuthorized[E](message: String) = {
-    logger.warn("[Result] [%s] Unauthorized: %s".format(StandardCode.UNAUTHORIZED, message))
     Resp[E](StandardCode.UNAUTHORIZED, message, null)
   }
 
   def serverError[E](message: String) = {
-    logger.error("[Result] [%s] Server Error: %s".format(StandardCode.INTERNAL_SERVER_ERROR, message))
     Resp[E](StandardCode.INTERNAL_SERVER_ERROR, message, null)
   }
 
   def notImplemented[E](message: String) = {
-    logger.error("[Result] [%s] Not Implemented: %s".format(StandardCode.NOT_IMPLEMENTED, message))
     Resp[E](StandardCode.NOT_IMPLEMENTED, message, null)
   }
 
   def serverUnavailable[E](message: String) = {
-    logger.error("[Result] [%s] Server Unavailable: %s".format(StandardCode.SERVICE_UNAVAILABLE, message))
     Resp[E](StandardCode.SERVICE_UNAVAILABLE, message, null)
   }
 
   def unknown[E](message: String) = {
-    logger.error("[Result] [%s] Unknown Fail: %s".format(StandardCode.UNKNOWN, message))
     Resp[E](StandardCode.UNKNOWN, message, null)
   }
 
   def customFail[E](code: String, message: String) = {
-    logger.error("[Result] [%s] Custom Fail: %s".format(CUSTOM_CODE_PREFIX + code, message))
     Resp[E](CUSTOM_CODE_PREFIX + code, message, null)
   }
 
