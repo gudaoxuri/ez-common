@@ -4,7 +4,6 @@
 
 == 功能
 
-. 配置文件读取并转Scala对象（ConfigHelper）
 . Json与Scala对象转换（JsonHelper）
 . Scala Bean操作（BeanHelper）
 . Scala Class扫描操作（ClassScanHelper）
@@ -19,7 +18,7 @@
 <dependency>
     <groupId>com.ecfront</groupId>
     <artifactId>ez-common</artifactId>
-    <version>0.6.8</version>
+    <version>1.0.0</version>
 </dependency>
 ----
 

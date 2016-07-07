@@ -7,34 +7,58 @@ import scala.collection.mutable.ArrayBuffer
 import scala.reflect.runtime.universe._
 
 /**
- * Bean操作辅助类
- */
+  * Bean操作辅助类
+  */
 object BeanHelper {
 
-  val rm = runtimeMirror(getClass.getClassLoader)
+  private val rm = runtimeMirror(getClass.getClassLoader)
 
   private val copyPropertiesAdapter = new NullAwareBeanUtilsBean
 
   /**
-   * Bean 复制，忽略Null值属性
-   * @param dest 目录Bean
-   * @param orig 源Bean
-   */
+    * Bean 复制，忽略Null值属性
+    *
+    * @param dest 目录Bean
+    * @param orig 源Bean
+    */
   def copyProperties(dest: AnyRef, orig: AnyRef) = copyPropertiesAdapter.copyProperties(dest, orig)
 
   /**
-   * 获取Bean的字段名称及类型
-   * @param beanClazz 目标Bean类型
-   * @param filterNames 要过滤的名称
-   * @param filterAnnotations 要过滤的注解
-   */
-  def findFields(beanClazz: Class[_], filterNames: Seq[String] = Seq(), filterAnnotations: Seq[Class[_ <: StaticAnnotation]] = Seq(classOf[Ignore])): Map[String, String] = {
+    * 获取Bean的字段名称及类型
+    *
+    * @param beanClazz          目标Bean类型
+    * @param excludeNames       要排除的名称，默认为空
+    * @param excludeAnnotations 要排除的注解，默认为 Ignore
+    * @param includeNames       要包含的名称，默认为全部
+    * @param includeAnnotations 要包含的注解，默认为全部
+    */
+  def findFields(beanClazz: Class[_],
+                 excludeNames: Seq[String] = Seq(),
+                 excludeAnnotations: Seq[Class[_ <: StaticAnnotation]] = Seq(classOf[Ignore]),
+                 includeNames: Seq[String] = Seq(),
+                 includeAnnotations: Seq[Class[_ <: StaticAnnotation]] = Seq()
+                ): Map[String, String] = {
     val fields = collection.mutable.Map[String, String]()
-    val filter = if (filterAnnotations.nonEmpty) findFieldAnnotations(beanClazz, filterAnnotations) else ArrayBuffer[FieldAnnotationInfo]()
+    val includeAnnotationFields =
+      if (includeAnnotations == null && includeAnnotations.isEmpty)
+        ArrayBuffer[String]()
+      else
+        findFieldAnnotations(beanClazz, includeAnnotations).map(_.fieldName)
+    val excludeAnnotationFields =
+      if (excludeAnnotations == null && excludeAnnotations.isEmpty)
+        ArrayBuffer[String]()
+      else
+        findFieldAnnotations(beanClazz, excludeAnnotations).map(_.fieldName)
+
     scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.members.collect {
-      case method: MethodSymbol if method.isGetter && method.isPublic
-        && (filterNames == null || filterNames.isEmpty || !filterNames.contains(method.name.toString.trim)) =>
-        if (!filter.exists(_.fieldName == method.name.toString.trim)) {
+      case method: MethodSymbol if method.isGetter && method.isPublic =>
+        val methodName = method.name.toString.trim
+        if ((includeNames == null || includeNames.isEmpty || includeNames.contains(methodName)) &&
+          (excludeNames == null || excludeNames.isEmpty || !excludeNames.contains(methodName)) &&
+          (excludeNames == null || excludeNames.isEmpty || !excludeNames.contains(methodName)) &&
+          (includeAnnotationFields.isEmpty || includeAnnotationFields.contains(methodName)) &&
+          (excludeAnnotationFields.isEmpty || !excludeAnnotationFields.contains(methodName))
+        ) {
           fields += (method.name.toString.trim -> method.returnType.toString.trim)
         }
     }
@@ -42,26 +66,34 @@ object BeanHelper {
   }
 
   /**
-   * 获取Bean中字段的值
-   * @param bean 目标Bean
-   * @param filterNames 要过滤的名称
-   */
-  def findValues(bean: AnyRef, filterNames: Seq[String] = Seq()): Map[String, Any] = {
+    * 获取Bean中字段的值
+    *
+    * @param bean         目标Bean
+    * @param excludeNames 要排除的名称，默认为空
+    * @param includeNames 要包含的名称，默认为全部
+    */
+  def findValues(bean: AnyRef, excludeNames: Seq[String] = Seq(), includeNames: Seq[String] = Seq()): Map[String, Any] = {
     val fields = collection.mutable.Map[String, Any]()
     val m = rm.reflect(bean)
     scala.reflect.runtime.currentMirror.classSymbol(bean.getClass).toType.members.collect {
-      case method: MethodSymbol if method.isGetter && method.isPublic
-        && (filterNames == null || filterNames.isEmpty || !filterNames.contains(method.name.toString.trim)) =>
-        fields += (method.name.toString.trim -> m.reflectMethod(method).apply())
+      case method: MethodSymbol if method.isGetter && method.isPublic =>
+        val methodName = method.name.toString.trim
+        if ((includeNames == null || includeNames.isEmpty || includeNames.contains(methodName)) &&
+          (excludeNames == null || excludeNames.isEmpty || !excludeNames.contains(methodName)) &&
+          (excludeNames == null || excludeNames.isEmpty || !excludeNames.contains(methodName))
+        ) {
+          fields += (method.name.toString.trim -> m.reflectMethod(method).apply())
+        }
     }
     fields.toMap
   }
 
   /**
-   * 获取Bean中指定字段的值
-   * @param bean 目标Bean
-   * @param fieldName 指定字段
-   */
+    * 获取Bean中指定字段的值
+    *
+    * @param bean      目标Bean
+    * @param fieldName 指定字段
+    */
   def getValue(bean: AnyRef, fieldName: String): Option[Any] = {
     val m = rm.reflect(bean)
     var value: Any = null
@@ -73,6 +105,13 @@ object BeanHelper {
 
   }
 
+  /**
+    * 设置Bean中指定字段的值
+    *
+    * @param bean      目标Bean
+    * @param fieldName 指定字段
+    * @param value     值
+    */
   def setValue(bean: AnyRef, fieldName: String, value: Any): Unit = {
     val m = rm.reflect(bean)
     scala.reflect.runtime.currentMirror.classSymbol(bean.getClass).toType.members.collect {
@@ -81,12 +120,25 @@ object BeanHelper {
     }
   }
 
+
   /**
-   * 递归获取带指定注解的字段
-   * @param beanClazz 目标Bean
-   * @param annotations 指定的注解，为空时获取所有注解
-   * @return 注解信息（注解名称及对应的字段）
-   **/
+    * 执行Bean中指定的方法
+    *
+    * @param bean   目标Bean
+    * @param method 指定方法
+    * @return 结果
+    */
+  def invoke(bean: Any, method: MethodSymbol): MethodMirror = {
+    rm.reflect(bean).reflectMethod(method)
+  }
+
+  /**
+    * 递归获取带指定注解的字段
+    *
+    * @param beanClazz   目标Bean
+    * @param annotations 指定的注解，为空时获取所有注解
+    * @return 注解信息（注解名称及对应的字段）
+    **/
   def findFieldAnnotations(beanClazz: Class[_], annotations: Seq[Class[_ <: StaticAnnotation]] = Seq()): ArrayBuffer[FieldAnnotationInfo] = {
     val result = ArrayBuffer[FieldAnnotationInfo]()
     findFieldAnnotations(result, beanClazz, annotations)
@@ -120,11 +172,12 @@ object BeanHelper {
   }
 
   /**
-   * 递归获取带指定注解的方法，当beanClazz 为object 时务必使用 getClass 获取
-   * @param beanClazz 目标Bean
-   * @param annotations 指定的注解，为空时获取所有注解
-   * @return 注解信息（注解名称及对应的方法）
-   **/
+    * 递归获取带指定注解的方法，当beanClazz 为object 时务必使用 getClass 获取
+    *
+    * @param beanClazz   目标Bean
+    * @param annotations 指定的注解，为空时获取所有注解
+    * @return 注解信息（注解名称及对应的方法）
+    **/
   def findMethodAnnotations(beanClazz: Class[_], annotations: Seq[Class[_ <: StaticAnnotation]] = Seq()): ArrayBuffer[methodAnnotationInfo] = {
     val result = ArrayBuffer[methodAnnotationInfo]()
     findMethodAnnotations(result, beanClazz, annotations)
@@ -139,15 +192,15 @@ object BeanHelper {
         m.annotations.map {
           annotation =>
             val tmp = annotation.toString
-            if(!tmp.startsWith("throws[java.")){
-            val annotationName = if (tmp.indexOf("(") == -1) tmp else tmp.substring(0, tmp.lastIndexOf("("))
-            if (annotations.isEmpty || annotations.exists(ann => ann.getName == annotationName)) {
-              val value = annotation.tree.children.tail.map(_.productElement(0).asInstanceOf[Constant].value)
-              val typeAnnotation = annotation.tree.tpe
-              val ann = rm.reflectClass(typeAnnotation.typeSymbol.asClass).
-                reflectConstructor(typeAnnotation.decl(termNames.CONSTRUCTOR).asMethod)(value: _*)
-              container += methodAnnotationInfo(ann, tf.member(TermName(m.name.toString.trim)).asMethod)
-            }
+            if (!tmp.startsWith("throws[java.")) {
+              val annotationName = if (tmp.indexOf("(") == -1) tmp else tmp.substring(0, tmp.lastIndexOf("("))
+              if (annotations.isEmpty || annotations.exists(ann => ann.getName == annotationName)) {
+                val value = annotation.tree.children.tail.map(_.productElement(0).asInstanceOf[Constant].value)
+                val typeAnnotation = annotation.tree.tpe
+                val ann = rm.reflectClass(typeAnnotation.typeSymbol.asClass).
+                  reflectConstructor(typeAnnotation.decl(termNames.CONSTRUCTOR).asMethod)(value: _*)
+                container += methodAnnotationInfo(ann, tf.member(TermName(m.name.toString.trim)).asMethod)
+              }
             }
         }
     }
@@ -160,16 +213,13 @@ object BeanHelper {
     }
   }
 
-  def invoke(obj: Any, method: MethodSymbol): MethodMirror = {
-    rm.reflect(obj).reflectMethod(method)
-  }
-
   /**
-   * 获取类注解
-   * @tparam A 注解类型
-   * @param beanClazz 目标类的类型
-   * @return 注解对象
-   */
+    * 获取类注解
+    *
+    * @tparam A 注解类型
+    * @param beanClazz 目标类的类型
+    * @return 注解对象
+    */
   def getClassAnnotation[A: TypeTag](beanClazz: Class[_]): Option[A] = {
     val res = getClassAnnotation(typeOf[A], beanClazz)
     if (res.isDefined) {
@@ -198,6 +248,12 @@ object BeanHelper {
     res
   }
 
+  /**
+    * 根据class类名字符串生成对应的class类
+    *
+    * @param clazzStr 类名字符串
+    * @return 对应的class类
+    */
   def getClassByStr(clazzStr: String): Class[_] = {
     clazzStr match {
       case "Int" => classOf[Int]
