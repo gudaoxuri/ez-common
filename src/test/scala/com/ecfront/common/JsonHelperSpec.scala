@@ -8,7 +8,6 @@ class JsonHelperSpec extends FunSuite {
 
   test("JsonHelper测试") {
 
-    JsonHelper.toJson(Config("aaa"))
     JsonHelper.toJson( """{"a_key":"a_val"}""")
     JsonHelper.toJson( """{"a_key":"a_val"}""")
     print(JsonHelper.toJsonString(JsonHelper.createObjectNode().set("", JsonHelper.createObjectNode().put("a_key", "a_val"))))

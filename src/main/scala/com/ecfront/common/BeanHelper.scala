@@ -40,12 +40,12 @@ object BeanHelper {
                 ): Map[String, String] = {
     val fields = collection.mutable.Map[String, String]()
     val includeAnnotationFields =
-      if (includeAnnotations == null && includeAnnotations.isEmpty)
+      if (includeAnnotations == null || includeAnnotations.isEmpty)
         ArrayBuffer[String]()
       else
         findFieldAnnotations(beanClazz, includeAnnotations).map(_.fieldName)
     val excludeAnnotationFields =
-      if (excludeAnnotations == null && excludeAnnotations.isEmpty)
+      if (excludeAnnotations == null || excludeAnnotations.isEmpty)
         ArrayBuffer[String]()
       else
         findFieldAnnotations(beanClazz, excludeAnnotations).map(_.fieldName)
