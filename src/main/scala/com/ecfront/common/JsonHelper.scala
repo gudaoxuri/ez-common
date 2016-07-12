@@ -1,5 +1,7 @@
 package com.ecfront.common
 
+import java.util.TimeZone
+
 import com.fasterxml.jackson.databind.node.{ArrayNode, ObjectNode}
 import com.fasterxml.jackson.databind.{DeserializationFeature, JsonNode, ObjectMapper}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
@@ -15,6 +17,10 @@ object JsonHelper extends LazyLogging {
   private val mapper = new ObjectMapper() with ScalaObjectMapper
   mapper.registerModule(DefaultScalaModule)
   mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+
+  def setTimeZone(tz:TimeZone):Unit={
+    mapper.setTimeZone(tz)
+  }
 
   /**
     * object 转 json字符串

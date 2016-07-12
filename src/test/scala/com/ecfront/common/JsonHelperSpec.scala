@@ -1,5 +1,7 @@
 package com.ecfront.common
 
+import java.util.{Date, TimeZone}
+
 import org.scalatest.FunSuite
 
 import scala.beans.BeanProperty
@@ -18,6 +20,11 @@ class JsonHelperSpec extends FunSuite {
     assert(result.head.cid == "1")
     assert(result.head.createTime == 123456789)
     assert(result.head.name == "sunisle")
+
+
+    println(JsonHelper.toObject("""{"date":"2016-07-12T12:00:00"}""",classOf[DateTest]).date)
+    JsonHelper.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai"))
+    println(JsonHelper.toObject("""{"date":"2016-07-12T12:00:00"}""",classOf[DateTest]).date)
 
   }
 
@@ -39,6 +46,9 @@ class JsonHelperSpec extends FunSuite {
 
 }
 
+class DateTest{
+  @BeanProperty var date:Date=_
+}
 
 trait Id {
   @BeanProperty var cid: String = _
