@@ -21,6 +21,12 @@ class JsonHelperSpec extends FunSuite {
     assert(result.head.createTime == 123456789)
     assert(result.head.name == "sunisle")
 
+    val json=JsonHelper.createObjectNode()
+    json.put("a","aa")
+    json.put("b",11)
+    assert(json.get("a").asText()=="aa")
+    assert(json.path("a").asText()=="aa")
+    assert(json.path("aa").asInt(22)==22)
 
     println(JsonHelper.toObject("""{"date":"2016-07-12T12:00:00"}""",classOf[DateTest]).date)
     JsonHelper.setTimeZone(TimeZone.getTimeZone("Asia/Shanghai"))
