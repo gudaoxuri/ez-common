@@ -11,7 +11,11 @@ class JsonHelperSpec extends FunSuite {
   test("JsonHelper测试") {
 
     JsonHelper.toJson( """{"a_key":"a_val"}""")
-    JsonHelper.toJson( """{"a_key":"a_val"}""")
+    JsonHelper.toJson(
+      """
+        |{
+        |  "a_key":"a_val" // 注释
+        |}""".stripMargin)
     print(JsonHelper.toJsonString(JsonHelper.createObjectNode().set("", JsonHelper.createObjectNode().put("a_key", "a_val"))))
     assert(JsonHelper.toObject("1", classOf[Int]) == 1)
     assert(JsonHelper.toObject[Int]("1") == 1)
