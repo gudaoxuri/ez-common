@@ -9,7 +9,7 @@ import scala.beans.BeanProperty
 class JsonHelperSpec extends FunSuite {
 
   test("JsonHelper测试") {
-
+z
     JsonHelper.toJson( """{"a_key":"a_val"}""")
     JsonHelper.toJson(
       """
