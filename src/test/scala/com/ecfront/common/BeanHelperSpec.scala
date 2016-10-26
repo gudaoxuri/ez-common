@@ -9,7 +9,7 @@ class BeanHelperSpec extends FunSuite {
 
   test("Bean测试") {
     val fields = BeanHelper.findFields(classOf[TestModel])
-    assert(fields.size == 4)
+    assert(fields.size == 5)
     assert(fields("id") == "String")
     assert(fields("name") == "String")
     assert(fields("bool") == "Boolean")
@@ -17,7 +17,7 @@ class BeanHelperSpec extends FunSuite {
     val model = TestModel("张三", bool = true, 14)
     model.id = "id001"
     val values = BeanHelper.findValues(model)
-    assert(values.size == 6)
+    assert(values.size == 7)
     assert(values("id") == "id001")
     assert(values("name") == "张三")
     assert(values("bool") == true)
@@ -26,12 +26,12 @@ class BeanHelperSpec extends FunSuite {
     assert(model.name == "李四")
 
     assert(BeanHelper.getValue(model, "name").get == "李四")
-    assert(BeanHelper.findValues(model).get("name").get == "李四")
+    assert(BeanHelper.findValues(model)("name") == "李四")
 
     assert(BeanHelper.getClassAnnotation[Entity](classOf[TestModel]).get.idField == "id")
 
     val fieldAnnotations = BeanHelper.findFieldAnnotations(classOf[TestModel])
-    assert(fieldAnnotations.size == 6)
+    assert(fieldAnnotations.size == 7)
     assert(fieldAnnotations.head.annotation.isInstanceOf[ManyToMany])
     assert(fieldAnnotations.head.annotation.asInstanceOf[ManyToMany].master)
     assert(!fieldAnnotations.head.annotation.asInstanceOf[ManyToMany].fetch)
@@ -81,7 +81,7 @@ case class TestModel(
                       @BeanProperty var name: String,
                       @BeanProperty var bool: Boolean,
                       @Ignore var age: Int
-                      ) extends IdModel {
+                      ) extends IdModel with StatusModel{
   @ManyToMany(master = true, fetch = false) var relA: List[String] = _
 
   @Get(url = "/multiply/")
@@ -98,6 +98,10 @@ case class Test2Model()
 abstract class IdModel {
   @BeanProperty var id: String = _
   @Ignore var title: String = _
+}
+
+trait StatusModel {
+  @BeanProperty var status: String = _
 }
 
 case class Entity(idField: String) extends StaticAnnotation

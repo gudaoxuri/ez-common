@@ -145,7 +145,6 @@ object BeanHelper {
     result
   }
 
-  @tailrec
   private def findFieldAnnotations(container: ArrayBuffer[FieldAnnotationInfo], beanClazz: Class[_], annotations: Seq[Class[_ <: StaticAnnotation]]) {
     scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType.members.collect {
       case m if !m.isMethod =>
@@ -169,6 +168,13 @@ object BeanHelper {
         }
       case _ =>
     }
+    beanClazz.getGenericInterfaces.foreach {
+      case c: Class[_] =>
+        if (c != classOf[Object]) {
+          findFieldAnnotations(container, c, annotations)
+        }
+      case _ =>
+    }
   }
 
   /**
@@ -184,7 +190,6 @@ object BeanHelper {
     result
   }
 
-  @tailrec
   private def findMethodAnnotations(container: ArrayBuffer[methodAnnotationInfo], beanClazz: Class[_], annotations: Seq[Class[_ <: StaticAnnotation]]) {
     val tf = scala.reflect.runtime.currentMirror.classSymbol(beanClazz).toType
     tf.members.collect {
@@ -205,6 +210,13 @@ object BeanHelper {
         }
     }
     beanClazz.getGenericSuperclass match {
+      case c: Class[_] =>
+        if (c != classOf[Object]) {
+          findMethodAnnotations(container, c, annotations)
+        }
+      case _ =>
+    }
+    beanClazz.getGenericInterfaces.foreach {
       case c: Class[_] =>
         if (c != classOf[Object]) {
           findMethodAnnotations(container, c, annotations)
