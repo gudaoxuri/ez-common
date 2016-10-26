@@ -2,7 +2,8 @@ package com.ecfront.common
 
 import org.apache.commons.beanutils.BeanUtilsBean
 
-import scala.annotation.{StaticAnnotation, tailrec}
+import scala.annotation.StaticAnnotation
+import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 import scala.reflect.runtime.universe._
 
@@ -37,8 +38,8 @@ object BeanHelper {
                  excludeAnnotations: Seq[Class[_ <: StaticAnnotation]] = Seq(classOf[Ignore]),
                  includeNames: Seq[String] = Seq(),
                  includeAnnotations: Seq[Class[_ <: StaticAnnotation]] = Seq()
-                ): Map[String, String] = {
-    val fields = collection.mutable.Map[String, String]()
+                ): mutable.LinkedHashMap[String, String] = {
+    val fields = collection.mutable.LinkedHashMap[String, String]()
     val includeAnnotationFields =
       if (includeAnnotations == null || includeAnnotations.isEmpty)
         ArrayBuffer[String]()
@@ -62,7 +63,7 @@ object BeanHelper {
           fields += (method.name.toString.trim -> method.returnType.toString.trim)
         }
     }
-    fields.toMap
+    fields
   }
 
   /**
@@ -72,8 +73,8 @@ object BeanHelper {
     * @param excludeNames 要排除的名称，默认为空
     * @param includeNames 要包含的名称，默认为全部
     */
-  def findValues(bean: AnyRef, excludeNames: Seq[String] = Seq(), includeNames: Seq[String] = Seq()): Map[String, Any] = {
-    val fields = collection.mutable.Map[String, Any]()
+  def findValues(bean: AnyRef, excludeNames: Seq[String] = Seq(), includeNames: Seq[String] = Seq()): mutable.LinkedHashMap[String, Any] = {
+    val fields = collection.mutable.LinkedHashMap[String, Any]()
     val m = rm.reflect(bean)
     scala.reflect.runtime.currentMirror.classSymbol(bean.getClass).toType.members.collect {
       case method: MethodSymbol if method.isGetter && method.isPublic =>
@@ -85,7 +86,7 @@ object BeanHelper {
           fields += (method.name.toString.trim -> m.reflectMethod(method).apply())
         }
     }
-    fields.toMap
+    fields
   }
 
   /**
@@ -102,7 +103,6 @@ object BeanHelper {
         value = m.reflectField(term).get
     }
     Some(value)
-
   }
 
   /**
