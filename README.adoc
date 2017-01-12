@@ -8,7 +8,7 @@
 . Scala Bean操作（BeanHelper）
 . Scala Class扫描操作（ClassScanHelper）
 . Shell脚本操作（ShellHelper）
-. 加密（EncryptHelper）
+. 加解密（EncryptHelper）
 . 请求响应模型（ReqRespVO）
 
 == 使用
@@ -18,7 +18,7 @@
 <dependency>
     <groupId>com.ecfront</groupId>
     <artifactId>ez-common</artifactId>
-    <version>1.2.3</version>
+    <version>1.2.4</version>
 </dependency>
 ----
 
